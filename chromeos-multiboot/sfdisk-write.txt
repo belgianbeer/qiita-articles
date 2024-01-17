@@ -1,0 +1,113 @@
+# sfdisk --force /dev/sda < p0-sda-dump
+Checking that no-one is using this disk right now ... FAILED
+
+This disk is currently in use - repartitioning is probably a bad idea.
+Umount all file systems, and swapoff all swap partitions on this disk.
+Use the --no-reread flag to suppress this check.
+
+Disk /dev/sda: 238.47 GiB, 256060514304 bytes, 500118192 sectors
+Disk model: PALIT PSP256 SSD
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: gpt
+Disk identifier: 9A788614-6CD4-1B46-9F6F-748287F5B228
+
+Old situation:
+
+Device         Start       End   Sectors   Size Type
+/dev/sda1   17010688  58953727  41943040    20G Linux filesystem
+/dev/sda2         69     32836     32768    16M ChromeOS kernel
+/dev/sda3    8622080  17010687   8388608     4G ChromeOS root fs
+/dev/sda4      32837     65604     32768    16M ChromeOS kernel
+/dev/sda5     233472   8622079   8388608     4G ChromeOS root fs
+/dev/sda6         65        65         1   512B ChromeOS kernel
+/dev/sda7         66        66         1   512B ChromeOS root fs
+/dev/sda8      69632    233471    163840    80M Linux filesystem
+/dev/sda9         67        67         1   512B ChromeOS reserved
+/dev/sda10        68        68         1   512B ChromeOS reserved
+/dev/sda11        64        64         1   512B unknown
+/dev/sda12  58953728  59478015    524288   256M EFI System
+/dev/sda13  59478016  59510783     32768    16M Microsoft reserved
+/dev/sda14  59510784 393379839 333869056 159.2G Microsoft basic data
+/dev/sda15 393379840 395020287   1640448   801M Windows recovery environment
+/dev/sda16 395020288 411797503  16777216     8G FreeBSD swap
+/dev/sda17 411797504 453740543  41943040    20G FreeBSD ZFS
+/dev/sda18 453740544 455837695   2097152     1G Solaris /usr & Apple ZFS
+/dev/sda19 455837696 497780735  41943040    20G Solaris root
+
+Partition table entries are not in disk order.
+
+>>> Script header accepted.
+>>> Script header accepted.
+>>> Script header accepted.
+>>> Script header accepted.
+>>> Script header accepted.
+>>> Script header accepted.
+>>> Script header accepted.
+>>> Created a new GPT disklabel (GUID: 9A788614-6CD4-1B46-9F6F-748287F5B228).
+/dev/sda1: Created a new partition 1 of type 'Linux filesystem' and of size 20 GiB.
+Partition #1 contains a ext4 signature.
+/dev/sda2: Created a new partition 2 of type 'ChromeOS kernel' and of size 16 MiB.
+/dev/sda3: Created a new partition 3 of type 'ChromeOS root fs' and of size 4 GiB.
+Partition #3 contains a ext4 signature.
+/dev/sda4: Created a new partition 4 of type 'ChromeOS kernel' and of size 16 MiB.
+/dev/sda5: Created a new partition 5 of type 'ChromeOS root fs' and of size 4 GiB.
+Partition #5 contains a ext4 signature.
+/dev/sda6: Created a new partition 6 of type 'ChromeOS kernel' and of size 512 B.
+/dev/sda7: Created a new partition 7 of type 'ChromeOS root fs' and of size 512 B.
+/dev/sda8: Created a new partition 8 of type 'Linux filesystem' and of size 80 MiB.
+Partition #8 contains a ext4 signature.
+/dev/sda9: Created a new partition 9 of type 'ChromeOS reserved' and of size 512 B.
+/dev/sda10: Created a new partition 10 of type 'ChromeOS reserved' and of size 512 B.
+/dev/sda11: Created a new partition 11 of type 'unknown' and of size 512 B.
+/dev/sda12: Created a new partition 12 of type 'EFI System' and of size 256 MiB.
+Partition #12 contains a vfat signature.
+/dev/sda13: Created a new partition 13 of type 'Microsoft reserved' and of size 16 MiB.
+/dev/sda14: Created a new partition 14 of type 'Microsoft basic data' and of size 159.2 GiB.
+Partition #14 contains a ntfs signature.
+/dev/sda15: Created a new partition 15 of type 'Windows recovery environment' and of size 801 MiB.
+Partition #15 contains a ntfs signature.
+/dev/sda16: Created a new partition 16 of type 'FreeBSD swap' and of size 8 GiB.
+Partition #16 contains a swap signature.
+/dev/sda17: Created a new partition 17 of type 'FreeBSD ZFS' and of size 20 GiB.
+Partition #17 contains a zfs_member signature.
+/dev/sda18: Created a new partition 18 of type 'Solaris /usr & Apple ZFS' and of size 1 GiB.
+Partition #18 contains a zfs_member signature.
+/dev/sda19: Created a new partition 19 of type 'Solaris root' and of size 20 GiB.
+Partition #19 contains a zfs_member signature.
+/dev/sda20: Done.
+
+New situation:
+Disklabel type: gpt
+Disk identifier: 9A788614-6CD4-1B46-9F6F-748287F5B228
+
+Device         Start       End   Sectors   Size Type
+/dev/sda1   17010688  58953727  41943040    20G Linux filesystem
+/dev/sda2         69     32836     32768    16M ChromeOS kernel
+/dev/sda3    8622080  17010687   8388608     4G ChromeOS root fs
+/dev/sda4      32837     65604     32768    16M ChromeOS kernel
+/dev/sda5     233472   8622079   8388608     4G ChromeOS root fs
+/dev/sda6         65        65         1   512B ChromeOS kernel
+/dev/sda7         66        66         1   512B ChromeOS root fs
+/dev/sda8      69632    233471    163840    80M Linux filesystem
+/dev/sda9         67        67         1   512B ChromeOS reserved
+/dev/sda10        68        68         1   512B ChromeOS reserved
+/dev/sda11        64        64         1   512B unknown
+/dev/sda12  58953728  59478015    524288   256M EFI System
+/dev/sda13  59478016  59510783     32768    16M Microsoft reserved
+/dev/sda14  59510784 393379839 333869056 159.2G Microsoft basic data
+/dev/sda15 393379840 395020287   1640448   801M Windows recovery environment
+/dev/sda16 395020288 411797503  16777216     8G FreeBSD swap
+/dev/sda17 411797504 453740543  41943040    20G FreeBSD ZFS
+/dev/sda18 453740544 455837695   2097152     1G Solaris /usr & Apple ZFS
+/dev/sda19 455837696 497780735  41943040    20G Solaris root
+
+Partition table entries are not in disk order.
+
+The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Re-reading the partition table failed.: Device or resource busy
+The kernel still uses the old table. The new table will be used at the next reboot or after you run partprobe(8) or partx(8).
+Syncing disks.
+root@cfsx2debian:~/sda-backup#

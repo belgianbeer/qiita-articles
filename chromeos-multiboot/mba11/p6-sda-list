@@ -1,0 +1,24 @@
+Disk /dev/sda: 465.92 GiB, 500277790720 bytes, 977105060 sectors
+Disk model: APPLE SSD SM512E
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 4096 bytes
+I/O size (minimum/optimal): 4096 bytes / 4096 bytes
+Disklabel type: gpt
+Disk identifier: 4A546240-D16A-A54C-A12F-91D8C359A02C
+
+Device         Start       End   Sectors   Size Type
+/dev/sda1         64        64         1   512B unknown
+/dev/sda2         65        65         1   512B ChromeOS kernel
+/dev/sda3         66        66         1   512B ChromeOS root fs
+/dev/sda4         67        67         1   512B ChromeOS reserved
+/dev/sda5         68        68         1   512B ChromeOS reserved
+/dev/sda6         69     32836     32768    16M ChromeOS kernel
+/dev/sda7      32837     65604     32768    16M ChromeOS kernel
+/dev/sda8      69632    233471    163840    80M Linux filesystem
+/dev/sda9     233472   8622079   8388608     4G ChromeOS root fs
+/dev/sda10   8622080  17010687   8388608     4G ChromeOS root fs
+/dev/sda11  17010688  84119551  67108864    32G Linux filesystem
+/dev/sda12  84119552  84643839    524288   256M EFI System
+/dev/sda13  84643840 530874431 446230592 212.8G Apple APFS
+/dev/sda14 530876416 977104895 446228480 212.8G Microsoft basic data
+

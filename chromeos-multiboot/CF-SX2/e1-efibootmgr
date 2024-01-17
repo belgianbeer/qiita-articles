@@ -1,0 +1,8 @@
+BootCurrent: 0005
+Timeout: 1 seconds
+BootOrder: 0000,0001,0004,0005,0006
+Boot0000* ChromeOS Flex	HD(12,GPT,72511358-8d4a-7b41-a256-57cfe6e97258,0x19000,0x20000)/File(\efi\boot\bootx64.efi)
+Boot0001* UEFI: IP4 Intel(R) 82579LM Gigabit Network Connection	PciRoot(0x0)/Pci(0x19,0x0)/MAC(cc7ee75d7095,0)/IPv4(0.0.0.00.0.0.0,0,0)AMBO
+Boot0004* UEFI: IP6 Intel(R) 82579LM Gigabit Network Connection	PciRoot(0x0)/Pci(0x19,0x0)/MAC(cc7ee75d7095,0)/IPv6([::]:<->[::]:,0,0)AMBO
+Boot0005* UEFI: Generic-Multi-Card 1.00	PciRoot(0x0)/Pci(0x14,0x0)/USB(7,0)/HD(1,MBR,0x407f083c,0x668,0x275a)AMBO
+Boot0006* UEFI: TOSHIBA	PciRoot(0x0)/Pci(0x14,0x0)/USB(1,0)/HD(1,MBR,0x6cb96d3d,0x3f,0xe6f541)AMBO
