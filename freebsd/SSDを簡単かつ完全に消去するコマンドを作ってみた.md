@@ -1,6 +1,9 @@
 # SSDを簡単に消去するコマンドを作ってみた
-<!-- https://qiita.com/belgianbeer/items/ecd070a649d859143e59
-	https://www.facebook.com/minmin.minda/posts/pfbid036UT8gnxkLonCNhW2ecMCB2mLBBzjzu6bgwR59TjhV2FfC7KGrpJuZTwYfDmqpgthl -->
+<!--
+	https://qiita.com/belgianbeer/items/ecd070a649d859143e59
+	https://www.facebook.com/minmin.minda/posts/pfbid036UT8gnxkLonCNhW2ecMCB2mLBBzjzu6bgwR59TjhV2FfC7KGrpJuZTwYfDmqpgthl
+	https://www.kioxia.com/ja-jp/business/ssd/solution/security.html キオクシアの解説
+-->
 更新情報
 
 - 2024-02-16 「ドライブのfrozen」と「本当に消去できているのか」を追加
