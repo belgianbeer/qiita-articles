@@ -1,3 +1,7 @@
+<!--
+    https://qiita.com/belgianbeer/items/5d6a2cc4386f8b7fd03a
+-->
+
 # いろいろなPCでSpeedometer 3.0を計測してみた
 
 Webブラウザーのベンチマークテストとして本命とも言える[Speedometer 3.0](https://browserbench.org/Speedometer3.0/)が[2024年3月にリリース](https://browserbench.org/announcements/speedometer3/)となったので([窓の杜の紹介記事](https://forest.watch.impress.co.jp/docs/news/1575562.html))、私物PCや会社にあるPCで色々計測してみた。その結果と所感をまとめてみる。
