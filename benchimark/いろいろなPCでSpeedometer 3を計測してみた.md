@@ -4,13 +4,13 @@
 
 # いろいろなPCでSpeedometer 3.0を計測してみた
 
-Webブラウザーのベンチマークテストとして本命とも言える[Speedometer 3.0](https://browserbench.org/Speedometer3.0/)が[2024年3月にリリース](https://browserbench.org/announcements/speedometer3/)となったので([窓の杜の紹介記事](https://forest.watch.impress.co.jp/docs/news/1575562.html))、私物PCや会社にあるPCで色々計測してみた。その結果と所感をまとめてみる。
+Webブラウザーのベンチマークテストとして本命とも言える[Speedometer 3.0](https://browserbench.org/Speedometer3.0/)が[2024年3月にリリース](https://browserbench.org/announcements/speedometer3/)となったので([窓の杜の紹介記事](https://forest.watch.impress.co.jp/docs/news/1575562.html))、私物PCや会社にあるPCで色々計測してみた。Geekな方の参考になればと結果と所感をまとめてみる。
 
 ## Speedometer 3.0の計測結果
 
 最初に結果を示すが、FirefoxでのSpeedometer 3.0のスコア順で並べてある[^table]。
 
-[^table]:当初は結果の一覧を表にしてみたが、横に長すぎて奇麗に表示できなかった。画像で用意するのもイマイチな感じなので、結局テキストにしてある。
+[^table]:当初は結果の一覧を表にしてみたが、横に長すぎて奇麗に表示できなかった。画像で用意するとコピペできないので、結局テキストで表記した。
 
 ```text
                                                                           Speedometor 3.0                  Cinebench R23
@@ -70,22 +70,4 @@ ChromeOS Flexの場合ブラウザはChromeになるが、同じPCの標準OSの
 
 13と同クラスのCPUでWindowsを使っている人からもストレス無く使えるという話を聞くので、WebブラウジングにおいてSpeedometer 3の結果が5を超えるかどうかは一つの目安となるのかもしれない。
 
-<!-- 
-| ID | Model | CPU | SM3 <br> Edge | SM3 <br> Firefox | SM3 <br> Chrome | SM3 <br> Safari | SM3 <br> ChromOS | CB23 <br> Multi | CB23 <br> Single |
-|:--:|-------|-----|-----:|--------:|-------:|-------:|-------------:|------:|-------:|
-| 1 |  MacBook Air (M2, 2022) |  Apple M2 | 29.60  | 31.30  | 31.40  | 32.30  |  | 7889  | 1593  |
-| 2 |  MacBook Air (M1, 2020) |  Apple M1 | 23.70  | 26.80  | 25.70  | 26.60  |  | 7072  | 1494  |
-| 3 |  ThinkPad E15 Gen 4 |  Core™ i3-1215U | 19.10  | 17.90  | 18.60  |  |  | 5337  | 1642  |
-| 4 |  ThinkCentre M75q Tiny Gen2 |  Ryzen™ 7 PRO 4750GE | 14.20  | 13.30  | 13.50  |  |  | 8983  | 1264  |
-| 5 |  MacBook Pro (Retina, 15-inch, Mid 2015) |  Core™ i7-4770HQ | 8.33  | 9.76  | 7.81  | 10.90  |  | 3768  | 738  |
-| 6 |  ThinkPad T470s |  Core™ i7-7600U | 8.30  | 8.67  | 8.90  |  |  | 1844  | 913  |
-| 7 |  MacBook Pro (Retina, 13-inch, Mid 2014) |  Core™ i5-4308U | 6.77  | 7.71  | 5.93  | 6.61  |  | 1721  | 692  |
-| 8 |  LAVIE GN256W3G7 |  Core™ i7-6500U | 7.10  | 7.03  | 7.04  |  |  | 1925  | 793  |
-| 9 |  Let's note SX2 |  Core™ i5-3340M | 6.50  | 6.74  | 6.09  |  | 4.97  | 1537  | 645  |
-| 10 |  MacBook Air (11-inch, Mid 2012) |  Core™ i7-3667U | 5.75  | 6.36  | 4.72  | 5.03  | 4.67  | 1337  | 576  |
-| 11 |  DELL Vostro 260s |  Core™ i3-2120 | 6.01  | 6.34  | 5.77  |  |  | 1504  | 606  |
-| 12 |  ThinkPad E430 |  Core™ i5-3210M | 5.37  | 5.56  | 5.28  |  |  | 1308  | 576  |
-| 13 |  ThinkPad X230i |  Core™ i3-3120M | 5.14  | 5.48  | 5.10  |  |  | 1233  | 496  |
-| 14 |  PRIMERGY MX130 S2 |  Athlon™ Ⅱ X2 220 | 3.65  | 3.32  | 3.67  |  |  | 689  | 358  |
-| 15 |  MacBook Air (13-inch, Late 2010) |  Core™ 2 Duo SL9600 | 2.62  | 2.24  | 2.06  | 3.03  | 2.49  |  |  |
--->
+ただしSpeedometer 3の結果が5を超えていてもメモリが少ないと十分なパフォーマンスを発揮できないので、メモリは最低でも8GBは用意するべきだと考える。実際筆者は9で8GB→16GBのメモリ増設を行ったところ、Webブラウジングやアプリケーションの切り替え等が軽快になるのを体験している。
