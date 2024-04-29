@@ -81,7 +81,7 @@ $ drive-secure-erase da1 yes
 
 ## 注意
 
-FreeBSDの場合次のようなエラーメッセージが表示されてコマンドが終了することがありますが、正常に消去されます。
+FreeBSDでSATA⇔USB変換を使っている場合に、次のようなエラーメッセージが表示されてコマンドが終了することがありますが正常に消去されます。ただエラーで終了した時点では消去が完了していないこともあるので注意が必要です(しばらく待つ必要がある)。
 
 ```code
 camcontrol: ATA SECURITY_ERASE_UNIT via pass_16 failed
