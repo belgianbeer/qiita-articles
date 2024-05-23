@@ -71,7 +71,7 @@ $ doas rm -rf /usr/src/*
 アップグレード時の処理時間を短縮する観点から、パッと思いついたアイデアを並べてみます。
 
 - カスタムカーネルが必要な場合でもカーネルコンパイルを行うのは1台だけに限定して、そのサーバーだけ/usr/srcを保持し、他のサーバーで/usr/srcは持たない。
-- 単に参照用に/usr/srcを持つのであれば、freebsd-updateでupgradeの作業中のみ/usr/srcを別名に変更し、OSの更新完了後に/usr/srcに名前を戻してあらためて`freebsd-update fetch ; freebsd-updaet install`を実行する
+- 単に参照用に/usr/srcを持つのであれば、freebsd-updateでupgradeの作業中のみ/usr/srcを別名に変更し、OSの更新完了後に/usr/srcに名前を戻してあらためて`freebsd-update fetch ; freebsd-update install`を実行する
 - ソースファイルは/usr/srcには展開せず、他の場所でgitを使って管理する
 
-筆者の場合複数のFreeBSDサーバーを運用していますが、/usr/srcがあるのは1台だけに限定しています。また、昨年投稿した「[ストレージを消費しているものを探す](https://qiita.com/belgianbeer/items/44d2e9c2f9ee43f6537f)」にも書いたようにDEBUG関連のファイルを置かないのも、ストレージ使用量だけでなくファイル数の面でも多少のメリットがあります。
+筆者の場合複数のFreeBSDサーバーを運用していますが、/usr/srcがあるのは1台だけに限定しています。また、以前に投稿した「[ストレージを消費しているものを探す](https://qiita.com/belgianbeer/items/44d2e9c2f9ee43f6537f)」にも書いたようにDEBUG関連のファイルを置かないのも、ストレージ使用量だけでなくファイル数の面でも多少のメリットがあります。
