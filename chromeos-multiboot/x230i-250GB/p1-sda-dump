@@ -1,0 +1,20 @@
+label: gpt
+label-id: 5DB577D5-1335-4A4F-B695-06AD3EA8FC84
+device: /dev/sda
+unit: sectors
+first-lba: 34
+last-lba: 488397134
+sector-size: 512
+
+/dev/sda1 : start=    17272832, size=   471124288, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=C2C81C59-0365-044A-B34E-DA9DDFBBD5CC, name="STATE"
+/dev/sda2 : start=    17141760, size=      131072, type=FE3A2A5D-4F32-41A7-B725-ACCC3285A309, uuid=A7E65FF0-163A-1543-ACD4-972B6640D6C6, name="KERN-A", attrs="GUID:49,56"
+/dev/sda3 : start=     8884224, size=     8257536, type=3CB8E202-3B7E-47DD-8A3C-7FF2A13CFCEC, uuid=C88F3907-FE2B-4A41-B395-F6D93F479710, name="ROOT-A"
+/dev/sda4 : start=     8753152, size=      131072, type=FE3A2A5D-4F32-41A7-B725-ACCC3285A309, uuid=E47825EB-59CC-C64C-97D1-54ED612ACDBC, name="KERN-B", attrs="GUID:48,56"
+/dev/sda5 : start=      495616, size=     8257536, type=3CB8E202-3B7E-47DD-8A3C-7FF2A13CFCEC, uuid=A05502BF-81D0-B847-8646-8C69EB047577, name="ROOT-B"
+/dev/sda6 : start=          65, size=           1, type=FE3A2A5D-4F32-41A7-B725-ACCC3285A309, uuid=B245FFB6-5EA6-F44D-8080-AF437FAE0AC0, name="KERN-C", attrs="GUID:52,53,54,55"
+/dev/sda7 : start=          66, size=           1, type=3CB8E202-3B7E-47DD-8A3C-7FF2A13CFCEC, uuid=4526C651-5CEB-044D-A5C5-BD0A608E748D, name="ROOT-C"
+/dev/sda8 : start=      331776, size=       32768, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=6F6F45A2-F32F-8442-80DC-21B6E399D2EE, name="OEM"
+/dev/sda9 : start=          67, size=           1, type=2E0A753D-9E48-43B0-8337-B15192CB1B5E, uuid=213AD145-9D4C-B24F-9916-54BEC282C0D9, name="reserved"
+/dev/sda10 : start=          68, size=           1, type=2E0A753D-9E48-43B0-8337-B15192CB1B5E, uuid=B67346A0-325E-0B43-A645-306CEB718745, name="reserved"
+/dev/sda11 : start=          64, size=           1, type=CAB6E88E-ABF3-4102-A07A-D4BB9BE3C1D3, uuid=2B40C396-8CF4-5D4E-8974-9D250DB47208, name="RWFW"
+/dev/sda12 : start=      364544, size=      131072, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, uuid=0636B836-A823-EC4A-8960-5BDE508EA92F, name="EFI-SYSTEM", attrs="LegacyBIOSBootable"

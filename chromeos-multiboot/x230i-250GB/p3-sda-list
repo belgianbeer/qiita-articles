@@ -1,0 +1,24 @@
+Disk /dev/sda: 232.89 GiB, 250059350016 bytes, 488397168 sectors
+Disk model: WDC WDS250G1B0A-
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: gpt
+Disk identifier: 5DB577D5-1335-4A4F-B695-06AD3EA8FC84
+
+Device        Start      End  Sectors  Size Type
+/dev/sda1  17272832 50827263 33554432   16G Linux filesystem
+/dev/sda2  17141760 17272831   131072   64M ChromeOS kernel
+/dev/sda3   8884224 17141759  8257536  3.9G ChromeOS root fs
+/dev/sda4   8753152  8884223   131072   64M ChromeOS kernel
+/dev/sda5    495616  8753151  8257536  3.9G ChromeOS root fs
+/dev/sda6        65       65        1  512B ChromeOS kernel
+/dev/sda7        66       66        1  512B ChromeOS root fs
+/dev/sda8    331776   495615   163840   80M Linux filesystem
+/dev/sda9        67       67        1  512B ChromeOS reserved
+/dev/sda10       68       68        1  512B ChromeOS reserved
+/dev/sda11       64       64        1  512B unknown
+/dev/sda12       69    31775    31707 15.5M unknown
+/dev/sda13 50827264 51351551   524288  256M EFI System
+
+Partition table entries are not in disk order.
