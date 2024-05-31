@@ -2,7 +2,7 @@
 
 # ChromeOS FlexとWindowsやmacOS等のマルチブート環境を作る
 
-【2024-05-30 追記】久しぶりにChromeOS Flexのデュアルブート環境を作ってみたところ、**2023年11月にChromeOS Flexのインストーラに変更がありました**。Macでは記載のままで問題ありません。Windows PCの場合は既存ESPの置き換えまではそのままですが、その後**Windowsのインストール後に起動しなくなると思われます**。現在インストーラの変更に合わせた記事を鋭意作成中です
+【2024-05-30 追記】久しぶりにChromeOS Flexのデュアルブート環境を作ってみたところ、**2023年11月にChromeOS Flexのインストーラに変更がありました**。Macでは記載のままで問題ありません。Windows PCの場合は既存ESPの置き換えまではそのままですが、その後**Windowsのインストール後に起動しなくなると思われます**。また改めて作業して手順を減らせることにも気づいたので、現在記事の修正版を作成中です。
 
 ## はじめに
 
@@ -78,14 +78,14 @@ PC側のストレージ構成によってはこの表とは違う割り当てに
 
 `sudo -i`でrootユーザーになります。
 
-```
+```command
 user@debian:~$ sudo -i
 root@debian:~# 
 ```
 
 設定途中でmkdosfsコマンドを使うため、aptを使ってdosfstoolsをインストールします。
 
-```
+```command
 root@debian:~# apt update
 .....(省略).....
 root@debian:~# apt install dosfstools
@@ -93,9 +93,19 @@ root@debian:~# apt install dosfstools
 root@debian:~# 
 ```
 
+必須ではないですが、openssh-serverのパッケージをインストールすると別のPCからログインできるようになります。`ip addr show`でIPアドレスを確認しsshで対象のPCにログインすれば、テキストのコピーやペーストができるようになって作業効率があがります。なおsshでログインするときのユーザー名は「user」、パスワードは「live」です。
+
+```command
+root@debian:~# apt install openssh-server
+.....(省略).....
+root@debian:~# ip addr show
+.....(省略).....
+root@debian:~# 
+```
+
 記録用のUSBメモリを/mntにマウントして、そこにcdします。これでUSBメモリにコマンドの出力結果などを残せるようになります。
 
-```
+```command
 root@debian:~# mount /dev/sdc1 /mnt
 root@debian:~# cd /mnt
 root@debian:/mnt# 
@@ -105,7 +115,7 @@ root@debian:/mnt#
 
 最初に`sfdisk --list`を使ってChromeOS Flexのパーティションテーブルを確認するとともに、あとで変更内容を比較するためにp1-sda-listというファイルに結果を保存しています。なお本記事で使っているPCの内蔵ストレージは120GBのSSDです。
 
-```
+```command
 root@debian:/mnt# sfdisk --list /dev/sda | tee p1-sda-list
 Disk /dev/sda: 111.79 GiB, 120034123776 bytes, 234441648 sectors
 Disk model: INTEL SSDSC2BW12
@@ -141,7 +151,7 @@ root@debian:/mnt#
 
 パーティションのインデックスと物理的順番が一致していないことが、この後WindowsやmacOSをインストールしたときにChromeOS Flexのパーティションテーブルが壊れる原因です。この後パーティションテーブルを編集するため、ChromeOS Flexインストール直後のパーティションテーブルを保存します。次の例は`sfdisk --dump`でパーティションテーブルを`p1-sda-dump`というファイルに保存しています。
 
-```
+```command
 root@debian:/mnt# sfdisk --dump /dev/sda | tee p1-sda-dump
 label: gpt
 label-id: AC161E76-BF4B-924D-9C72-06CE3C6EABCF
@@ -172,7 +182,7 @@ root@debian:/mnt#
 
 次のリストは最初に確認した`sfdisk --list /dev/sda`のパーティションテーブルをスタートセクタの小さい順つまり物理的順番に並び変え、説明のためパーティションの順番をIDとして追加してあります。
 
-```
+```command
 ID : Device        Start       End   Sectors   Size Type
  1 : /dev/sda6        65        65         1   512B ChromeOS kernel
  2 : /dev/sda7        66        66         1   512B ChromeOS root fs
@@ -208,7 +218,7 @@ ID : Device        Start       End   Sectors   Size Type
 
 まず、先ほど保存したp1-sda-dumpを別のファイルにコピーします。そしてFAT用パーティションを作るためにUUIDを1個用意します。
 
-```
+```command
 root@debian:/mnt# cp p1-sda-dump p2-sda-dump
 root@debian:/mnt# uuidgen
 f2b1b3fc-81da-4ef8-9494-32dd9c0b20a0
@@ -242,13 +252,13 @@ sda1の変更は単純にパーティションサイズを小さくするだけ�
 
 p2-sda-dumpの変更点を確認できたら、sfdiskコマンドを使ってストレージに書き込みます。
 
-```
+```commaned
 root@debian:/mnt# sfdisk /dev/sda < p2-sda-dump
 ```
 
 変更後のパーティションテーブルは次のようになります。
 
-```
+```commaned
 root@debian:/mnt# sfdisk --list /dev/sda | tee p2-sda-list
 Disk /dev/sda: 111.79 GiB, 120034123776 bytes, 234441648 sectors
 Disk model: INTEL SSDSC2BW12
@@ -279,7 +289,7 @@ root@debian:/mnt#
 
 次にsda1とsda13にファイルシステムを作成します。sda1はEXT4ですからmkfs.ext4コマンドを使います。
 
-```
+```commaned
 root@debian:/mnt# mkfs.ext4 -L H-STAGE /dev/sda1
 mke2fs 1.46.2 (28-Feb-2021)
 /dev/sda1 contains a ext4 file system labelled 'H-STATE'
@@ -302,7 +312,7 @@ root@debian:/mnt#
 
 sda13はESP用ですからFAT32で作成します。
 
-```
+```commaned
 root@debian:/mnt# mkdosfs -F 32 -n EFI-SYSTEM /dev/sda13
 mkfs.fat 4.2 (2021-01-31)
 root@debian:/mnt# 
@@ -312,7 +322,7 @@ root@debian:/mnt#
 
 新しいESPの準備ができたので、sda12の内容をsda13にコピーします。ここでは双方のパーティションをマウントしてからtarを使ってコピーしていますが、cp -rなど他の方法でもかまいません。コピーが完了したら、sda12とsda13をアンマウントします。
 
-```
+```commaned
 root@debian:/mnt# mkdir /mnt/efi /mnt/dos
 root@debian:/mnt# mount /dev/sda12 /mnt/efi
 root@debian:/mnt# mount /dev/sda13 /mnt/dos
@@ -330,14 +340,14 @@ sda13に新たなESPが用意できたので、既存のsda12を削除してsda1
 
 今度はp2-sda.dumpをp3-sda-dumpにコピーして、p3-sda-dumpを編集します。
 
-```
+```commaned
 root@debian:/mnt# cp p2-sda-dump p3-sda-dump
 root@debian:/mnt# vi p3-sda-dump
 ```
 
 編集内容は次のようになります。
 
-```
+```commaned
 root@debian:/mnt# diff -U0 p2-sda-dump p3-sda-dump
 --- p2-sda-dump 2023-04-08 22:51:03.042949000 +0900
 +++ p3-sda-dump 2023-04-23 21:43:45.434028000 +0900
@@ -357,7 +367,7 @@ Macの場合はsda13を削除せず、typeをAPFSのGUIDである`7C3457EF-0000-
 
 正しく変更できているのを確認したら、再びsfdiskコマンドでパーティションテーブルを書き換えます。
 
-```
+```commaned
 root@debian:/mnt# sfdisk /dev/sda < p3-sda-dump
 .....(省略).....
 root@debian:/mnt#
@@ -365,7 +375,7 @@ root@debian:/mnt#
 
 変更後のパーティションテーブルは次のようになります。
 
-```
+```commaned
 root@debian:/mnt# sfdisk --list /dev/sda | tee p3-sda-list
 Disk /dev/sda: 111.79 GiB, 120034123776 bytes, 234441648 sectors
 Disk model: INTEL SSDSC2BW12
@@ -392,11 +402,12 @@ Device        Start      End  Sectors  Size Type
 Partition table entries are not in disk order.
 root@debian:/mnt# 
 ```
+
 この状態でsda8は、実際に使われている領域よりパーティションサイズが大きいことになりますが問題ありません。
 
 最初に保存したp1-sda-listと比較すると次のようになります。
 
-```
+```commaned
 root@debian:/mnt# diff -U0 --ignore-space-change p1-sda-list p3-sda-list
 --- p1-sda-list 2023-04-08 22:51:03.042130000 +0900
 +++ p3-sda-list 2023-04-08 22:51:03.044934000 +0900
@@ -413,7 +424,7 @@ root@debian:/mnt# diff -U0 --ignore-space-change p1-sda-list p3-sda-list
 
 これでWindowsやmacOSなどの他のOSをインストールする準備ができたので、PCをシャットダウンします。Debian LiveのUSBメモリとパーティションテーブルのメモをとった記録用のUSBメモリは後の作業で使用するのでそのまま保管してください。
 
-```
+```commaned
 root@debian:/mnt# poweroff
 ```
 
@@ -429,7 +440,7 @@ root@debian:/mnt# poweroff
 
 再びDebian LiveのUSBメモリで起動し、起動しなくなっているChromeOS Flexのパーティションテーブルの修復を行います。Debian Liveが起動したら、前の作業で記録をとったUSBメモリを/mntにマウントします。なおaptコマンドを使うことはありません。
 
-```
+```commaned
 user@debian:~$ sudo -i
 root@debian:~# mount /dev/sdc1 /mnt
 root@debian:~# cd /mnt
@@ -438,7 +449,7 @@ root@debian:/mnt#
 
 起動しなくなったパーティションテーブルの状況を`sfdisk --list`で確認します。
 
-```
+```commaned
 root@debian:/mnt# sfdisk --list /dev/sda | tee p4-sda-list
 Disk /dev/sda: 111.79 GiB, 120034123776 bytes, 234441648 sectors
 Disk model: INTEL SSDSC2BW12
@@ -471,7 +482,7 @@ ChromeOS Flexインストール時点の1から12を見ると、sda12は事前�
 
 まず`sfdisk --dump`で現状のパーティションテーブルをp4-sda-dumpに保存します。
 
-```
+```commaned
 root@debian:/mnt# sfdisk --dump /dev/sda > p4-sda-dump
 ```
 
@@ -479,14 +490,14 @@ p4-sda-dumpを前に保存したp3-sda-dumpと比べると、順番は変わっ�
 
 修復するためのパーティションテーブルは、エディタを使うこともなく次のコマンドラインで作成できます。
 
-```
+```commaned
 root@debian:/mnt# cp p3-sda-dump p5-sda-dump
 root@debian:/mnt# tail -n 2 p4-sda-dump >> p5-sda-dump
 ```
 
 2つめの`tail -n`のパラメータは、増えたパーティション数に合わせて1, 2, 3等を指定します。Macの場合はsda13を事前に用意しているため、sda13の行をmacOSインストール後のものと置き換えます。p5-sda-dumpの修正ができたら元になったp3-sda-dumpとdiffコマンドで比較して、正しく変更できたかどうかを確認します。
 
-```
+```commaned
 root@debian:/mnt# diff -U1  p3-sda-dump p5-sda-dump
 --- p3-sda-dump 2023-04-26 12:30:22.078533000 +0900
 +++ p5-sda-dump 2023-04-26 12:30:22.078899000 +0900
@@ -499,7 +510,7 @@ root@debian:/mnt#
 
 問題なければ修正したパーティションテーブルをストレージに反映します。
 
-```
+```commaned
 root@debian:/mnt# sfdisk /dev/sda < p5-sda-dump
 ```
 
@@ -529,7 +540,7 @@ Macでは起動OSを選ぶ時にControlキーを押しながらクリックす�
 
 macOSでは問題無いのですが、WindowsとChromeOS Flexを組み合わせた場合はRTC(Real Time Clock, PCが内蔵しているBIOSで確認できる時計)の時刻の扱いの違いが問題になります。ChromeOS FlexではRTCの時刻をUTCとして扱うのに対して、Windowsではローカルの時刻つまりJSTとして扱います。そのため何もしないとChromeOS Flexを使った後にWindowsを起動すると、時刻が9時間ずれてしまいます。この問題は次のレジストリを設定すると、WindowsがRTCをUTCで扱うようになって回避できます。
 
-```
+```commaned
 Windows Registry Editor Version 5.00
 
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\TimeZoneInformation]
