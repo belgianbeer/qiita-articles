@@ -1,0 +1,20 @@
+label: gpt
+label-id: 375C8B32-FD8D-464E-91A6-FB83A244B8C4
+device: /dev/sda
+unit: sectors
+first-lba: 34
+last-lba: 234441614
+sector-size: 512
+
+/dev/sda1 : start=    17272832, size=   217168768, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=ABB70E5B-29DC-E64D-ADFC-4C85AF8FF5AB, name="STATE"
+/dev/sda2 : start=          69, size=       32768, type=FE3A2A5D-4F32-41A7-B725-ACCC3285A309, uuid=53F298F1-1E89-A940-A8E0-8D82BCC9701F, name="KERN-A", attrs="GUID:48,53,54,56"
+/dev/sda3 : start=     8884224, size=     8388608, type=3CB8E202-3B7E-47DD-8A3C-7FF2A13CFCEC, uuid=9FD0B508-505C-5547-96F6-F4331FD31A96, name="ROOT-A"
+/dev/sda4 : start=       32837, size=       32768, type=FE3A2A5D-4F32-41A7-B725-ACCC3285A309, uuid=D9537851-4016-DF43-8382-52E0ECEE0401, name="KERN-B", attrs="GUID:52,53,54,55"
+/dev/sda5 : start=      495616, size=     8388608, type=3CB8E202-3B7E-47DD-8A3C-7FF2A13CFCEC, uuid=DDACFDD2-0D0E-474B-84EE-4039BD636DBD, name="ROOT-B"
+/dev/sda6 : start=          65, size=           1, type=FE3A2A5D-4F32-41A7-B725-ACCC3285A309, uuid=70CDA11D-CC98-7C40-ADA0-82C445DA3C3D, name="KERN-C", attrs="GUID:52,53,54,55"
+/dev/sda7 : start=          66, size=           1, type=3CB8E202-3B7E-47DD-8A3C-7FF2A13CFCEC, uuid=DD34BE00-E29C-0046-96E7-4A1A5560ED1C, name="ROOT-C"
+/dev/sda8 : start=      331776, size=       32768, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=0C70F5EF-DE31-C945-8F15-B7A54834ADB6, name="OEM"
+/dev/sda9 : start=          67, size=           1, type=2E0A753D-9E48-43B0-8337-B15192CB1B5E, uuid=083B9722-78BC-D243-AE53-381646ABBA34, name="reserved"
+/dev/sda10 : start=          68, size=           1, type=2E0A753D-9E48-43B0-8337-B15192CB1B5E, uuid=4C78ED32-C8AA-F34E-A0E0-FD70762E6DB5, name="reserved"
+/dev/sda11 : start=          64, size=           1, type=CAB6E88E-ABF3-4102-A07A-D4BB9BE3C1D3, uuid=C108F1BC-E56E-5F40-B929-B3F1679BBAD6, name="RWFW"
+/dev/sda12 : start=      364544, size=      131072, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, uuid=F4CD81A7-771B-B54D-89B9-DCA60C886D4F, name="EFI-SYSTEM", attrs="LegacyBIOSBootable"

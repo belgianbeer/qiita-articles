@@ -1,0 +1,23 @@
+Disk /dev/sda: 111.79 GiB, 120034123776 bytes, 234441648 sectors
+Disk model: INTEL SSDSC2BW12
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: gpt
+Disk identifier: 375C8B32-FD8D-464E-91A6-FB83A244B8C4
+
+Device        Start      End  Sectors  Size Type
+/dev/sda1  17272832 50827263 33554432   16G Linux filesystem
+/dev/sda2        69    32836    32768   16M ChromeOS kernel
+/dev/sda3   8884224 17272831  8388608    4G ChromeOS root fs
+/dev/sda4     32837    65604    32768   16M ChromeOS kernel
+/dev/sda5    495616  8884223  8388608    4G ChromeOS root fs
+/dev/sda6        65       65        1  512B ChromeOS kernel
+/dev/sda7        66       66        1  512B ChromeOS root fs
+/dev/sda8    331776   364543    32768   16M Linux filesystem
+/dev/sda9        67       67        1  512B ChromeOS reserved
+/dev/sda10       68       68        1  512B ChromeOS reserved
+/dev/sda11       64       64        1  512B unknown
+/dev/sda12 50827264 51351551   524288  256M EFI System
+
+Partition table entries are not in disk order.

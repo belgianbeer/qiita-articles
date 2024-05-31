@@ -154,25 +154,25 @@ root@debian:/mnt#
 ```command
 root@debian:/mnt# sfdisk --dump /dev/sda | tee p1-sda-dump
 label: gpt
-label-id: AC161E76-BF4B-924D-9C72-06CE3C6EABCF
+label-id: 375C8B32-FD8D-464E-91A6-FB83A244B8C4
 device: /dev/sda
 unit: sectors
 first-lba: 34
 last-lba: 234441614
 sector-size: 512
 
-/dev/sda1 : start=    17010688, size=   217430912, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=08FD7E32-17D4-7341-934F-06FE44B1237F, name="STATE"
-/dev/sda2 : start=          69, size=       32768, type=FE3A2A5D-4F32-41A7-B725-ACCC3285A309, uuid=A8FC6629-5055-A040-A9A5-415A8EA50C1B, name="KERN-A", attrs="GUID:48,56"
-/dev/sda3 : start=     8622080, size=     8388608, type=3CB8E202-3B7E-47DD-8A3C-7FF2A13CFCEC, uuid=358D4F01-CDE0-5D4C-BB65-E91160A04FE2, name="ROOT-A"
-/dev/sda4 : start=       32837, size=       32768, type=FE3A2A5D-4F32-41A7-B725-ACCC3285A309, uuid=9F96728D-96A8-6745-892D-91084EAF2481, name="KERN-B", attrs="GUID:49,56"
-/dev/sda5 : start=      233472, size=     8388608, type=3CB8E202-3B7E-47DD-8A3C-7FF2A13CFCEC, uuid=1030FFBB-8B4C-5049-9B22-20878DC32FE7, name="ROOT-B"
-/dev/sda6 : start=          65, size=           1, type=FE3A2A5D-4F32-41A7-B725-ACCC3285A309, uuid=3AB9CA80-136D-1641-B222-3C0BBEC2B66D, name="KERN-C", attrs="GUID:52,53,54,55"
-/dev/sda7 : start=          66, size=           1, type=3CB8E202-3B7E-47DD-8A3C-7FF2A13CFCEC, uuid=170F4F46-6D5F-ED48-82EB-39FEEE521751, name="ROOT-C"
-/dev/sda8 : start=       69632, size=       32768, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=9E8B7A51-B372-5B44-B4D4-EB4ABE5F77CF, name="OEM"
-/dev/sda9 : start=          67, size=           1, type=2E0A753D-9E48-43B0-8337-B15192CB1B5E, uuid=32CF3879-ABD4-B74D-A864-7E734A2DB89E, name="reserved"
-/dev/sda10 : start=          68, size=           1, type=2E0A753D-9E48-43B0-8337-B15192CB1B5E, uuid=7433F1DE-C8AF-7D42-8A58-996671E0753D, name="reserved"
-/dev/sda11 : start=          64, size=           1, type=CAB6E88E-ABF3-4102-A07A-D4BB9BE3C1D3, uuid=C147F3D7-07F4-0048-97B5-B4DAC1DF7120, name="RWFW"
-/dev/sda12 : start=      102400, size=      131072, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, uuid=FF81FED5-A756-3C44-9693-3E41EE823552, name="EFI-SYSTEM", attrs="LegacyBIOSBootable"
+/dev/sda1 : start=    17272832, size=   217168768, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=ABB70E5B-29DC-E64D-ADFC-4C85AF8FF5AB, name="STATE"
+/dev/sda2 : start=          69, size=       32768, type=FE3A2A5D-4F32-41A7-B725-ACCC3285A309, uuid=53F298F1-1E89-A940-A8E0-8D82BCC9701F, name="KERN-A", attrs="GUID:48,53,54,56"
+/dev/sda3 : start=     8884224, size=     8388608, type=3CB8E202-3B7E-47DD-8A3C-7FF2A13CFCEC, uuid=9FD0B508-505C-5547-96F6-F4331FD31A96, name="ROOT-A"
+/dev/sda4 : start=       32837, size=       32768, type=FE3A2A5D-4F32-41A7-B725-ACCC3285A309, uuid=D9537851-4016-DF43-8382-52E0ECEE0401, name="KERN-B", attrs="GUID:52,53,54,55"
+/dev/sda5 : start=      495616, size=     8388608, type=3CB8E202-3B7E-47DD-8A3C-7FF2A13CFCEC, uuid=DDACFDD2-0D0E-474B-84EE-4039BD636DBD, name="ROOT-B"
+/dev/sda6 : start=          65, size=           1, type=FE3A2A5D-4F32-41A7-B725-ACCC3285A309, uuid=70CDA11D-CC98-7C40-ADA0-82C445DA3C3D, name="KERN-C", attrs="GUID:52,53,54,55"
+/dev/sda7 : start=          66, size=           1, type=3CB8E202-3B7E-47DD-8A3C-7FF2A13CFCEC, uuid=DD34BE00-E29C-0046-96E7-4A1A5560ED1C, name="ROOT-C"
+/dev/sda8 : start=      331776, size=       32768, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=0C70F5EF-DE31-C945-8F15-B7A54834ADB6, name="OEM"
+/dev/sda9 : start=          67, size=           1, type=2E0A753D-9E48-43B0-8337-B15192CB1B5E, uuid=083B9722-78BC-D243-AE53-381646ABBA34, name="reserved"
+/dev/sda10 : start=          68, size=           1, type=2E0A753D-9E48-43B0-8337-B15192CB1B5E, uuid=4C78ED32-C8AA-F34E-A0E0-FD70762E6DB5, name="reserved"
+/dev/sda11 : start=          64, size=           1, type=CAB6E88E-ABF3-4102-A07A-D4BB9BE3C1D3, uuid=C108F1BC-E56E-5F40-B929-B3F1679BBAD6, name="RWFW"
+/dev/sda12 : start=      364544, size=      131072, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, uuid=F4CD81A7-771B-B54D-89B9-DCA60C886D4F, name="EFI-SYSTEM", attrs="LegacyBIOSBootable"
 root@debian:/mnt# 
 ```
 
@@ -184,18 +184,18 @@ root@debian:/mnt#
 
 ```command
 ID : Device        Start       End   Sectors   Size Type
- 1 : /dev/sda6        65        65         1   512B ChromeOS kernel
- 2 : /dev/sda7        66        66         1   512B ChromeOS root fs
- 3 : /dev/sda9        67        67         1   512B ChromeOS reserved
- 4 : /dev/sda2        69     32836     32768    16M ChromeOS kernel
- 5 : /dev/sda11       64        64         1   512B unknown
- 6 : /dev/sda10       68        68         1   512B ChromeOS reserved
+ 1 : /dev/sda11       64        64         1   512B unknown
+ 2 : /dev/sda6        65        65         1   512B ChromeOS kernel
+ 3 : /dev/sda7        66        66         1   512B ChromeOS root fs
+ 4 : /dev/sda9        67        67         1   512B ChromeOS reserved
+ 5 : /dev/sda10       68        68         1   512B ChromeOS reserved
+ 6 : /dev/sda2        69     32836     32768    16M ChromeOS kernel
  7 : /dev/sda4     32837     65604     32768    16M ChromeOS kernel
- 8 : /dev/sda8     69632    102399     32768    16M Linux filesystem
- 9 : /dev/sda12   102400    233471    131072    64M EFI System
-10 : /dev/sda5    233472   8622079   8388608     4G ChromeOS root fs
-11 : /dev/sda3   8622080  17010687   8388608     4G ChromeOS root fs
-12 : /dev/sda1  17010688 234441599 217430912 103.7G Linux filesystem
+ 8 : /dev/sda8    331776    364543     32768    16M Linux filesystem
+ 9 : /dev/sda12   364544    495615    131072    64M EFI System
+10 : /dev/sda5    495616   8884223   8388608     4G ChromeOS root fs
+11 : /dev/sda3   8884224  17272831   8388608     4G ChromeOS root fs
+12 : /dev/sda1  17272832 234441599 217168768 103.6G Linux filesystem
 ```
 
 現時点ではストレージの全領域がChromeOS Flexに割り当てられているので、このままでは他のOSをインストールするための空き領域がありません。そこでポイントとなるのがこの中で最大の領域を使用している12番目にあるLinux filesystemのパーティションです。このパーティションはChromeOS Flexのユーザーデータ用で、パーティションインデックスでは/dev/sda1が示すように最初に割り当てられていますが、物理的には最後にあります(以降の説明では/dev/sdaXの/dev/は省略します)。sda1の領域を縮小できれば、残りを空き領域として他のOS等に割り当てられるようになります。
@@ -221,7 +221,7 @@ ID : Device        Start       End   Sectors   Size Type
 ```command
 root@debian:/mnt# cp p1-sda-dump p2-sda-dump
 root@debian:/mnt# uuidgen
-f2b1b3fc-81da-4ef8-9494-32dd9c0b20a0
+91b804e1-8930-48ee-817d-c42e759b95b1
 root@debian:/mnt#
 ```
 
@@ -230,17 +230,14 @@ root@debian:/mnt#
 ```
 root@debian:/mnt# vi p2-sda-dump
 .....(省略).....
-root@debian:/mnt# diff -U1 p1-sda-dump p2-sda-dump
---- p1-sda-dump 2023-04-08 22:51:03.041333000 +0900
-+++ p2-sda-dump 2023-04-08 22:51:03.042949000 +0900
-@@ -8,3 +8,3 @@
-
--/dev/sda1 : start=    17010688, size=   217430912, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=08FD7E32-17D4-7341-934F-06FE44B1237F, name="STATE"
-+/dev/sda1 : start=    17010688, size=    33554432, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=08FD7E32-17D4-7341-934F-06FE44B1237F, name="STATE"
- /dev/sda2 : start=          69, size=       32768, type=FE3A2A5D-4F32-41A7-B725-ACCC3285A309, uuid=A8FC6629-5055-A040-A9A5-415A8EA50C1B, name="KERN-A", attrs="GUID:48,56"
-@@ -20 +20,2 @@
- /dev/sda12 : start=      102400, size=      131072, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, uuid=FF81FED5-A756-3C44-9693-3E41EE823552, name="EFI-SYSTEM", attrs="LegacyBIOSBootable"
-+/dev/sda13 : start=    50565120, size=      524288, type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7, uuid=f2b1b3fc-81da-4ef8-9494-32dd9c0b20a0, name="DOS"
+root@debian:/mnt# diff -U0 p1-sda-dump p2-sda-dump
+--- p1-sda-dump 2024-05-31 04:58:38.000000000 +0000
++++ p2-sda-dump 2024-05-31 05:04:58.000000000 +0000
+@@ -9 +9 @@
+-/dev/sda1 : start=    17272832, size=   217168768, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=ABB70E5B-29DC-E64D-ADFC-4C85AF8FF5AB, name="STATE"
++/dev/sda1 : start=    17272832, size=    33554432, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=ABB70E5B-29DC-E64D-ADFC-4C85AF8FF5AB, name="STATE"
+@@ -20,0 +21 @@
++/dev/sda13 : start=    50827264, size=      524288, type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7, uuid=91b804e1-8930-48ee-817d-c42e759b95b1, name="DOS"
 root@debian:/mnt# 
 ```
 
@@ -252,13 +249,13 @@ sda1の変更は単純にパーティションサイズを小さくするだけ�
 
 p2-sda-dumpの変更点を確認できたら、sfdiskコマンドを使ってストレージに書き込みます。
 
-```commaned
+```command
 root@debian:/mnt# sfdisk /dev/sda < p2-sda-dump
 ```
 
 変更後のパーティションテーブルは次のようになります。
 
-```commaned
+```command
 root@debian:/mnt# sfdisk --list /dev/sda | tee p2-sda-list
 Disk /dev/sda: 111.79 GiB, 120034123776 bytes, 234441648 sectors
 Disk model: INTEL SSDSC2BW12
@@ -266,22 +263,22 @@ Units: sectors of 1 * 512 = 512 bytes
 Sector size (logical/physical): 512 bytes / 512 bytes
 I/O size (minimum/optimal): 512 bytes / 512 bytes
 Disklabel type: gpt
-Disk identifier: AC161E76-BF4B-924D-9C72-06CE3C6EABCF
+Disk identifier: 375C8B32-FD8D-464E-91A6-FB83A244B8C4
 
 Device        Start      End  Sectors  Size Type
-/dev/sda1  17010688 50565119 33554432   16G Linux filesystem
+/dev/sda1  17272832 50827263 33554432   16G Linux filesystem
 /dev/sda2        69    32836    32768   16M ChromeOS kernel
-/dev/sda3   8622080 17010687  8388608    4G ChromeOS root fs
+/dev/sda3   8884224 17272831  8388608    4G ChromeOS root fs
 /dev/sda4     32837    65604    32768   16M ChromeOS kernel
-/dev/sda5    233472  8622079  8388608    4G ChromeOS root fs
+/dev/sda5    495616  8884223  8388608    4G ChromeOS root fs
 /dev/sda6        65       65        1  512B ChromeOS kernel
 /dev/sda7        66       66        1  512B ChromeOS root fs
-/dev/sda8     69632   102399    32768   16M Linux filesystem
+/dev/sda8    331776   364543    32768   16M Linux filesystem
 /dev/sda9        67       67        1  512B ChromeOS reserved
 /dev/sda10       68       68        1  512B ChromeOS reserved
 /dev/sda11       64       64        1  512B unknown
-/dev/sda12   102400   233471   131072   64M EFI System
-/dev/sda13 50565120 51089407   524288  256M Microsoft basic data
+/dev/sda12   364544   495615   131072   64M EFI System
+/dev/sda13 50827264 51351551   524288  256M Microsoft basic data
 
 Partition table entries are not in disk order.
 root@debian:/mnt# 
@@ -289,15 +286,15 @@ root@debian:/mnt#
 
 次にsda1とsda13にファイルシステムを作成します。sda1はEXT4ですからmkfs.ext4コマンドを使います。
 
-```commaned
+```command
 root@debian:/mnt# mkfs.ext4 -L H-STAGE /dev/sda1
-mke2fs 1.46.2 (28-Feb-2021)
+mke2fs 1.47.0 (5-Feb-2023)
 /dev/sda1 contains a ext4 file system labelled 'H-STATE'
-        last mounted on /mnt/stateful_partition on Fri Mar 17 04:05:56 2023
+        last mounted on /tmp/install-mount-point on Fri May 31 04:46:18 2024
 Proceed anyway? (y,N) y
 Discarding device blocks: done
 Creating filesystem with 4194304 4k blocks and 1048576 inodes
-Filesystem UUID: 5e407efa-1a3a-41f7-9d04-b036bb893ff6
+Filesystem UUID: 81141d32-e853-4dbe-baed-48f96c2f7bea
 Superblock backups stored on blocks:
         32768, 98304, 163840, 229376, 294912, 819200, 884736, 1605632, 2654208,
         4096000
@@ -312,7 +309,7 @@ root@debian:/mnt#
 
 sda13はESP用ですからFAT32で作成します。
 
-```commaned
+```command
 root@debian:/mnt# mkdosfs -F 32 -n EFI-SYSTEM /dev/sda13
 mkfs.fat 4.2 (2021-01-31)
 root@debian:/mnt# 
@@ -322,7 +319,7 @@ root@debian:/mnt#
 
 新しいESPの準備ができたので、sda12の内容をsda13にコピーします。ここでは双方のパーティションをマウントしてからtarを使ってコピーしていますが、cp -rなど他の方法でもかまいません。コピーが完了したら、sda12とsda13をアンマウントします。
 
-```commaned
+```command
 root@debian:/mnt# mkdir /mnt/efi /mnt/dos
 root@debian:/mnt# mount /dev/sda12 /mnt/efi
 root@debian:/mnt# mount /dev/sda13 /mnt/dos
@@ -336,38 +333,35 @@ root@debian:/mnt# umount /mnt/dos
 root@debian:/mnt# umount /mnt/efi
 ```
 
-sda13に新たなESPが用意できたので、既存のsda12を削除してsda13の領域をsda12のESPに変更します。しかしそれだけでは元のsda12の領域(sda8とsda5の間、IDで9の領域)に64MBの空きができてしまいます。Windowsの場合インストール時に16MBの予約パーティションを作るようで、ここが空いたままでは予約パーティションがsda8の次に作成されてしまい、せっかくパーティションインデックスと物理的順番を12で一致させたESPが物理的に13番目になってしまいます。そこで元sda12の空き領域を無くすため、sda8の領域をsda5の手前まで拡張します。
+物理的な順番としてsda1の次にsda13として新たなESPが用意できたので、既存のsda12を削除してsda13の領域をsda12のESPに変更します。編集内容は、sda12のスタートとサイズにsda13に設定したものをコピーして、sda13の行を削除します。今度はp2-sda.dumpをp3-sda-dumpにコピーして、p3-sda-dumpを編集します。
 
-今度はp2-sda.dumpをp3-sda-dumpにコピーして、p3-sda-dumpを編集します。
-
-```commaned
+```command
 root@debian:/mnt# cp p2-sda-dump p3-sda-dump
 root@debian:/mnt# vi p3-sda-dump
 ```
 
-編集内容は次のようになります。
+編集後の変更内容は次のようになります。
 
-```commaned
+```command
 root@debian:/mnt# diff -U0 p2-sda-dump p3-sda-dump
---- p2-sda-dump 2023-04-08 22:51:03.042949000 +0900
-+++ p3-sda-dump 2023-04-23 21:43:45.434028000 +0900
-@@ -16 +16 @@
--/dev/sda8 : start=       69632, size=       32768, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=9E8B7A51-B372-5B44-B4D4-EB4ABE5F77CF, name="OEM"
-+/dev/sda8 : start=       69632, size=      163840, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=9E8B7A51-B372-5B44-B4D4-EB4ABE5F77CF, name="OEM"
+--- p2-sda-dump 2024-05-31 05:04:58.000000000 +0000
++++ p3-sda-dump 2024-05-31 05:26:10.000000000 +0000
 @@ -20,2 +20 @@
--/dev/sda12 : start=      102400, size=      131072, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, uuid=FF81FED5-A756-3C44-9693-3E41EE823552, name="EFI-SYSTEM", attrs="LegacyBIOSBootable"
--/dev/sda13 : start=    50565120, size=      524288, type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7, uuid=f2b1b3fc-81da-4ef8-9494-32dd9c0b20a0, name="DOS"
-+/dev/sda12 : start=    50565120, size=      524288, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, uuid=FF81FED5-A756-3C44-9693-3E41EE823552, name="EFI-SYSTEM", attrs="LegacyBIOSBootable"
+-/dev/sda12 : start=      364544, size=      131072, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, uuid=F4CD81A7-771B-B54D-89B9-DCA60C886D4F, name="EFI-SYSTEM", attrs="LegacyBIOSBootable"
+-/dev/sda13 : start=    50827264, size=      524288, type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7, uuid=91b804e1-8930-48ee-817d-c42e759b95b1, name="DOS"
++/dev/sda12 : start=    50827264, size=      524288, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, uuid=F4CD81A7-771B-B54D-89B9-DCA60C886D4F, name="EFI-SYSTEM", attrs="LegacyBIOSBootable"
 root@debian:/mnt#
 ```
 
+<!--
 sda8は、元の16MBにsda12の64MBのサイズを加えた80MB(163840セクタ)に変更しています。sda12はtypeとuuidはそのままで、sda13のstartとsizeの値に変更します。そしてsda13は不要なので単純に削除します。
 
 Macの場合はsda13を削除せず、typeをAPFSのGUIDである`7C3457EF-0000-11AA-AA11-00306543ECAC`、nameを`"Customer"`に変更します(変更は必須では無いと思いますが試していません)。さらにsda13がsda12の直後になるように、startにsda12のsizeとstartを加えた値を設定しsizeには残り容量に収まる範囲で適当な値(例えば50GB程度)を割り当てます。macOSのインストール時にsda13をAPFSでフォーマットする必要がありますが、フォーマットとともにsda13は残りの領域全てを含むサイズに拡張されるので厳密なサイズを設定する必要はありません。
+-->
 
 正しく変更できているのを確認したら、再びsfdiskコマンドでパーティションテーブルを書き換えます。
 
-```commaned
+```command
 root@debian:/mnt# sfdisk /dev/sda < p3-sda-dump
 .....(省略).....
 root@debian:/mnt#
@@ -375,7 +369,7 @@ root@debian:/mnt#
 
 変更後のパーティションテーブルは次のようになります。
 
-```commaned
+```command
 root@debian:/mnt# sfdisk --list /dev/sda | tee p3-sda-list
 Disk /dev/sda: 111.79 GiB, 120034123776 bytes, 234441648 sectors
 Disk model: INTEL SSDSC2BW12
@@ -383,52 +377,134 @@ Units: sectors of 1 * 512 = 512 bytes
 Sector size (logical/physical): 512 bytes / 512 bytes
 I/O size (minimum/optimal): 512 bytes / 512 bytes
 Disklabel type: gpt
-Disk identifier: AC161E76-BF4B-924D-9C72-06CE3C6EABCF
+Disk identifier: 375C8B32-FD8D-464E-91A6-FB83A244B8C4
 
 Device        Start      End  Sectors  Size Type
-/dev/sda1  17010688 50565119 33554432   16G Linux filesystem
+/dev/sda1  17272832 50827263 33554432   16G Linux filesystem
 /dev/sda2        69    32836    32768   16M ChromeOS kernel
-/dev/sda3   8622080 17010687  8388608    4G ChromeOS root fs
+/dev/sda3   8884224 17272831  8388608    4G ChromeOS root fs
 /dev/sda4     32837    65604    32768   16M ChromeOS kernel
-/dev/sda5    233472  8622079  8388608    4G ChromeOS root fs
+/dev/sda5    495616  8884223  8388608    4G ChromeOS root fs
 /dev/sda6        65       65        1  512B ChromeOS kernel
 /dev/sda7        66       66        1  512B ChromeOS root fs
-/dev/sda8     69632   233471   163840   80M Linux filesystem
+/dev/sda8    331776   364543    32768   16M Linux filesystem
 /dev/sda9        67       67        1  512B ChromeOS reserved
 /dev/sda10       68       68        1  512B ChromeOS reserved
 /dev/sda11       64       64        1  512B unknown
-/dev/sda12 50565120 51089407   524288  256M EFI System
+/dev/sda12 50827264 51351551   524288  256M EFI System
 
 Partition table entries are not in disk order.
 root@debian:/mnt# 
 ```
-
+<!-- 
 この状態でsda8は、実際に使われている領域よりパーティションサイズが大きいことになりますが問題ありません。
+-->
 
 最初に保存したp1-sda-listと比較すると次のようになります。
 
-```commaned
+```command
 root@debian:/mnt# diff -U0 --ignore-space-change p1-sda-list p3-sda-list
---- p1-sda-list 2023-04-08 22:51:03.042130000 +0900
-+++ p3-sda-list 2023-04-08 22:51:03.044934000 +0900
+--- p1-sda-list 2024-05-31 04:58:24.000000000 +0000
++++ p3-sda-list 2024-05-31 05:33:18.000000000 +0000
 @@ -10 +10 @@
--/dev/sda1  17010688 234441599 217430912 103.7G Linux filesystem
-+/dev/sda1  17010688 50565119 33554432   16G Linux filesystem
-@@ -17 +17 @@
--/dev/sda8     69632    102399     32768    16M Linux filesystem
-+/dev/sda8     69632   233471   163840   80M Linux filesystem
+-/dev/sda1  17272832 234441599 217168768 103.6G Linux filesystem
++/dev/sda1  17272832 50827263 33554432   16G Linux filesystem
 @@ -21 +21 @@
--/dev/sda12   102400    233471    131072    64M EFI System
-+/dev/sda12 50565120 51089407   524288  256M EFI System
+-/dev/sda12   364544    495615    131072    64M EFI System
++/dev/sda12 50827264 51351551   524288  256M EFI System
+root@debian:/mnt# 
 ```
 
-これでWindowsやmacOSなどの他のOSをインストールする準備ができたので、PCをシャットダウンします。Debian LiveのUSBメモリとパーティションテーブルのメモをとった記録用のUSBメモリは後の作業で使用するのでそのまま保管してください。
+sda1のサイズが103.6GBから16GBと小さくなり、sda12は物理的にsda1の次の場所になって64MBから256MBに大きくなっているのがわかります。
 
-```commaned
+## OS用パーティションの作成
+
+続いてWindowsやmacOS用のパーティションを用意します。
+
+> 以前の本記事では、WindowsやmacOS用のパーティションの作成はそれぞれのOSのインストール時に作成していました。WindowsやmacOSでパーティションを作成するとChromeOS Flex用のパーティションが破壊されるため、修復作業が必要になっていました。しかしこれらのOSのインストールに必要なパーティションを予め作成しておけば各OSのインストーラでパーティションを作ることが無くなり、結果としてパーティションの破壊を防ぎ修復作業も不要になります。
+
+### Windowsの場合
+
+Windows 10や11では、次の3つのパーティションが必要になります。
+
+<table>
+  <caption>Windowsでの必須パーティション</caption>
+  <thead>
+    <tr>
+      <th>パーティション</th> <th>パーティションタイプを示すUUID</th>
+    </tr>
+  </thead>
+  <tr>
+    <td> 予約パーティション </td> <td>E3C9E316-0B5C-4DB8-817D-F92DF00215AE</td>
+  </tr>
+  <tr>
+    <td> 回復パーティション </td> <td>DE94BBA4-06D1-4D40-A16A-BFD50179D6AC</td>
+  </tr>
+  <tr>
+    <td> データパーティション</td> <td>EBD0A0A2-B9E5-4433-87C0-68B6B72699C7</td>
+  </tr>
+</table>
+
+そこでこれらのパーティションを事前に作成します。
+
+```command
+root@debian:/mnt# diff -U1 p3-sda-dump p4-sda-dump
+--- p3-sda-dump 2024-05-31 05:26:10.000000000 +0000
++++ p4-sda-dump 2024-05-31 08:31:26.000000000 +0000
+@@ -20 +20,4 @@
+ /dev/sda12 : start=    50827264, size=      524288, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, uuid=F4CD81A7-771B-B54D-89B9-DCA60C886D4F, name="EFI-SYSTEM", attrs="LegacyBIOSBootable"
++/dev/sda13 : start=    51351552, size=       32768, type=E3C9E316-0B5C-4DB8-817D-F92DF00215AE, uuid=2ed439bd-96c9-48ee-a8f6-34e8b54d3cf7, name="Microsoft reserved partition", attrs="GUID:63"
++/dev/sda14 : start=    51384320, size=     2097152, type=DE94BBA4-06D1-4D40-A16A-BFD50179D6AC, uuid=2614bf81-4be6-4aa8-adf5-44329b13cb7a, attrs="RequiredPartition GUID:63"
++/dev/sda15 : start=    53481472, size=   180960136, type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7, uuid=c1ff36c2-0b82-4b33-9ee6-5bc551b2ffb2, name="Basic data partition"
+root@debian:/mnt# 
+```
+
+```command
+--- p1-sda-list	2024-05-31 04:58:24.000000000 +0000
++++ p4-sda-list	2024-05-31 08:33:12.000000000 +0000
+@@ -10 +10 @@
+-/dev/sda1  17272832 234441599 217168768 103.6G Linux filesystem
++/dev/sda1  17272832  50827263  33554432   16G Linux filesystem
+@@ -21 +21,4 @@
+-/dev/sda12   364544    495615    131072    64M EFI System
++/dev/sda12 50827264  51351551    524288  256M EFI System
++/dev/sda13 51351552  51384319     32768   16M Microsoft reserved
++/dev/sda14 51384320  53481471   2097152    1G Windows recovery environment
++/dev/sda15 53481472 234441607 180960136 86.3G Microsoft basic data
+```
+
+```command
+--- p3-sda-list	2024-05-31 05:33:18.000000000 +0000
++++ p4-sda-list	2024-05-31 08:33:12.000000000 +0000
+@@ -21,0 +22,3 @@
++/dev/sda13 51351552  51384319     32768   16M Microsoft reserved
++/dev/sda14 51384320  53481471   2097152    1G Windows recovery environment
++/dev/sda15 53481472 234441607 180960136 86.3G Microsoft basic data
+```
+
+
+
+### macOSの場合
+
+<!--
+APFSのGUIDである`7C3457EF-0000-11AA-AA11-00306543ECAC`、nameを`"Customer"`に変更します(変更は必須では無いと思いますが試していません)。さらにsda13がsda12の直後になるように、startにsda12のsizeとstartを加えた値を設定しsizeには残り容量に収まる範囲で適当な値(例えば50GB程度)を割り当てます。macOSのインストール時にsda13をAPFSでフォーマットする必要がありますが、フォーマットとともにsda13は残りの領域全てを含むサイズに拡張されるので厳密なサイズを設定する必要はありません。
+-->
+
+
+-->
+
+
+この状態でDebian LiveをシャットダウンしてPCの電源を入れるとChromeOS Flexの起動を確認できます。もし起動しない場合は、今までの手順を見直します。Debian Liveを使って修復するか、またはChromeOS Flexのインストールからやり直すことになるかもしれません。
+
+
+```command
 root@debian:/mnt# poweroff
 ```
 
-この後PCの電源を入れるとChromeOS Flexの起動を確認できます。もし起動しない場合は、今までの手順を見直します。Debian Liveを使って修復するか、またはChromeOS Flexのインストールからやり直すことになるかもしれません。
+
+
+これでWindowsやmacOSなどの他のOSをインストールする準備ができたので、PCをシャットダウンします。Debian LiveのUSBメモリとパーティションテーブルのメモをとった記録用のUSBメモリは後の作業で使用するのでそのまま保管してください。
+
 
 ## WindowsまたはmacOSのインストール
 
@@ -440,7 +516,7 @@ root@debian:/mnt# poweroff
 
 再びDebian LiveのUSBメモリで起動し、起動しなくなっているChromeOS Flexのパーティションテーブルの修復を行います。Debian Liveが起動したら、前の作業で記録をとったUSBメモリを/mntにマウントします。なおaptコマンドを使うことはありません。
 
-```commaned
+```command
 user@debian:~$ sudo -i
 root@debian:~# mount /dev/sdc1 /mnt
 root@debian:~# cd /mnt
@@ -449,7 +525,7 @@ root@debian:/mnt#
 
 起動しなくなったパーティションテーブルの状況を`sfdisk --list`で確認します。
 
-```commaned
+```command
 root@debian:/mnt# sfdisk --list /dev/sda | tee p4-sda-list
 Disk /dev/sda: 111.79 GiB, 120034123776 bytes, 234441648 sectors
 Disk model: INTEL SSDSC2BW12
@@ -482,7 +558,7 @@ ChromeOS Flexインストール時点の1から12を見ると、sda12は事前�
 
 まず`sfdisk --dump`で現状のパーティションテーブルをp4-sda-dumpに保存します。
 
-```commaned
+```command
 root@debian:/mnt# sfdisk --dump /dev/sda > p4-sda-dump
 ```
 
@@ -490,14 +566,14 @@ p4-sda-dumpを前に保存したp3-sda-dumpと比べると、順番は変わっ�
 
 修復するためのパーティションテーブルは、エディタを使うこともなく次のコマンドラインで作成できます。
 
-```commaned
+```command
 root@debian:/mnt# cp p3-sda-dump p5-sda-dump
 root@debian:/mnt# tail -n 2 p4-sda-dump >> p5-sda-dump
 ```
 
 2つめの`tail -n`のパラメータは、増えたパーティション数に合わせて1, 2, 3等を指定します。Macの場合はsda13を事前に用意しているため、sda13の行をmacOSインストール後のものと置き換えます。p5-sda-dumpの修正ができたら元になったp3-sda-dumpとdiffコマンドで比較して、正しく変更できたかどうかを確認します。
 
-```commaned
+```command
 root@debian:/mnt# diff -U1  p3-sda-dump p5-sda-dump
 --- p3-sda-dump 2023-04-26 12:30:22.078533000 +0900
 +++ p5-sda-dump 2023-04-26 12:30:22.078899000 +0900
@@ -510,7 +586,7 @@ root@debian:/mnt#
 
 問題なければ修正したパーティションテーブルをストレージに反映します。
 
-```commaned
+```command
 root@debian:/mnt# sfdisk /dev/sda < p5-sda-dump
 ```
 
@@ -540,7 +616,7 @@ Macでは起動OSを選ぶ時にControlキーを押しながらクリックす�
 
 macOSでは問題無いのですが、WindowsとChromeOS Flexを組み合わせた場合はRTC(Real Time Clock, PCが内蔵しているBIOSで確認できる時計)の時刻の扱いの違いが問題になります。ChromeOS FlexではRTCの時刻をUTCとして扱うのに対して、Windowsではローカルの時刻つまりJSTとして扱います。そのため何もしないとChromeOS Flexを使った後にWindowsを起動すると、時刻が9時間ずれてしまいます。この問題は次のレジストリを設定すると、WindowsがRTCをUTCで扱うようになって回避できます。
 
-```commaned
+```command
 Windows Registry Editor Version 5.00
 
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\TimeZoneInformation]
