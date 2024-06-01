@@ -22,7 +22,9 @@ ChromeOS Flexとのマルチブート環境を作るのに必要なものは次�
 1. Debian Liveの起動用USBメモリ(2GB以上)
 1. 記録用のUSBメモリ(100KB程度の空きがあれば十分)
 
-UEFIをサポートしていないPCでもChromeOS Flexの動作は問題ありませんが、他OSとのブートの切り替えにUEFIで用意されているブートセレクタを使うことを前提にしているため、GPT(GUID Partition Table)を扱えるUEFI対応のPCが必須となります。Intel CPUのMacはUEFIをサポートしているので問題ありません。Windows PC、Macのいずれを利用するにしても、ChromeOS Flexをインストールすると既存データは削除されてしまいますので、事前のバックアップは必須です。さらにWindows PCの場合は[回復ドライブ](https://support.microsoft.com/ja-jp/windows/%E5%9B%9E%E5%BE%A9%E3%83%89%E3%83%A9%E3%82%A4%E3%83%96%E3%82%92%E4%BD%9C%E6%88%90%E3%81%99%E3%82%8B-abb4691b-5324-6d4a-8766-73fab304c246)を作成し、最悪の場合に出荷時の設定に戻せるよう準備しておくことをお勧めします。
+UEFIをサポートしていないPCでもChromeOS Flexの動作は問題ありませんが、他OSとのブートの切り替えにUEFIで用意されているブートセレクタを使うことを前提にしているため、GPT(GUID Partition Table)を扱えるUEFI対応のPCが必須となります。Intel CPUのMacはUEFIをサポートしているので問題ありません。Windows PCでは、UEFIをサポートしているのにUEFIが無効になっていることがあります。その場合BIOSの設定でUEFIの機能を有効にする必要があります(UEFIを有効に切り替えると既存のWindowsが起動しなくなることがあるので、切り替えはChromOS Flexをインストールするときに行います)。
+
+Windows PC、Macのいずれを利用するにしても、**ChromeOS Flexをインストールすると既存データは削除されてしまいますので、事前のバックアップは必須**です。さらにWindows PCの場合は[回復ドライブ](https://support.microsoft.com/ja-jp/windows/%E5%9B%9E%E5%BE%A9%E3%83%89%E3%83%A9%E3%82%A4%E3%83%96%E3%82%92%E4%BD%9C%E6%88%90%E3%81%99%E3%82%8B-abb4691b-5324-6d4a-8766-73fab304c246)を作成し、最悪の場合に出荷時の設定に戻せるよう準備しておくことをお勧めします。
 
 また、対象のPCでChromeOS FLexが正常に動作することを事前に確認しておく必要があります。[ChromeOS Flexの認定モデル](https://support.google.com/chromeosflex/answer/11513094 "認定モデルリスト")であれば安心ですが、そうでない場合は[ChromeOS FlexのUSBインストーラ](https://support.google.com/chromeosflex/answer/11541904)を使って、インストール用USBメモリだけでの動作確認を行うのが良いでしょう。
 
@@ -103,6 +105,8 @@ root@debian:~# ip addr show
 root@debian:~# 
 ```
 
+Debian Liveではキーボードが英語キーボードの配列になるため、日本語キーボードしか利用していない人にとっては一部の記号の入力が困難になります。その場合もsshを利用して使い慣れているキーボードの機器からログインしたほうが作業がやりやすくなります。
+
 記録用のUSBメモリを/mntにマウントして、そこにcdします。これでUSBメモリにコマンドの出力結果などを残せるようになります。
 
 ```command
@@ -143,7 +147,7 @@ Partition table entries are not in disk order.
 root@debian:/mnt#
 ```
 
-ここで、Start、Endの各数字はストレージのLBA(Logical Block Addressing)、Sectorsはブロック数(セクタ数)を示していて、1ブロックは512バイトです。/dev/sda2を例にすると、LBAの始まりが69、最後がLBAで32836、ブロック数は32768(=32836-69+1)となります。ブロック数が32768ですから32768×512÷1024÷1024=16となり容量は16MBとなります。 
+ここで、Start、Endの各数字はストレージのLBA(Logical Block Addressing)、Sectorsはブロック数(セクタ数)を示していて、1ブロックは512バイトです。/dev/sda2を例にすると、LBAの始まりが69、最後がLBAで32836、ブロック数は32768(=32836-69+1)となります。ブロック数が32768ですから 32768 \* 512 / 1024 / 1024 = 16 となり容量は16MBとなります。
 
 パーティションテーブルを見たことのある人なら違和感を覚えると思いますが、ChromeOS Flexではパーティションが12個もあり、更にパーティションテーブルのインデックス(/dev/sdaXのXで示す数字がパーティションテーブルのインデックス)とストレージ上の物理的順番が一致していません。通常パーティションを作成する場合先頭から順に割り当てるので、`sfdisk --list`等で見ればスタートセクタの値は小さいものから順に並びます。しかしどういうわけかChromeOS Flexではこのようにバラバラの順番でパーティションが並んでいます。そのため`Partition table entries are not in disk order.`というメッセージも表示されています。
 
@@ -221,7 +225,7 @@ ID : Device        Start       End   Sectors   Size Type
 ```command
 root@debian:/mnt# cp p1-sda-dump p2-sda-dump
 root@debian:/mnt# uuidgen
-91b804e1-8930-48ee-817d-c42e759b95b1
+91b804e1-8930-48ee-817d-c42exx9b95b1
 root@debian:/mnt#
 ```
 
@@ -237,13 +241,13 @@ root@debian:/mnt# diff -U0 p1-sda-dump p2-sda-dump
 -/dev/sda1 : start=    17272832, size=   217168768, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=ABB70E5B-29DC-E64D-ADFC-4C85AF8FF5AB, name="STATE"
 +/dev/sda1 : start=    17272832, size=    33554432, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=ABB70E5B-29DC-E64D-ADFC-4C85AF8FF5AB, name="STATE"
 @@ -20,0 +21 @@
-+/dev/sda13 : start=    50827264, size=      524288, type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7, uuid=91b804e1-8930-48ee-817d-c42e759b95b1, name="DOS"
++/dev/sda13 : start=    50827264, size=      524288, type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7, uuid=91b804e1-8930-48ee-817d-c42exx9b95b1, name="DOS"
 root@debian:/mnt# 
 ```
 
-sda1の変更は単純にパーティションサイズを小さくするだけで、元は100GB以上あるので、16GBに変更するため 16 * 2^30 / 512 = 33554432 に設定しています。ChromeOS Flexにどのぐらいの容量を割り当てるべきなのかは使い方によって変わりますが、筆者の場合はChromeOS Flexのローカールストレージはほとんど使用しないので16GBで十分という判断です。sda1のサイズの縮小によって他のOSで87GB程利用できるようになります。
+sda1の変更は単純にパーティションサイズを小さくするだけで、元は100GB以上あるので、16GBに変更するため 16 \* 2^30 / 512 = **33554432** に設定しています。ChromeOS Flexにどのぐらいの容量を割り当てるべきなのかは使い方によって変わりますが、筆者の場合はChromeOS Flexのローカールストレージはほとんど使用しないので16GBで十分という判断です。sda1のサイズの縮小によって他のOSで87GB程利用できるようになります。
 
-次にESPを置き換えるためのFATパーティション(ESPのファイルシステムはFAT16やFAT32)を一旦sda13に用意します。sda13のstartは物理的にはsda1の後になるのでsda1のstartとsizeを加えた 17010688 + 33554432 = 50565120 となります。ESPの容量は最低でも100MB程度は欲しいので余裕を見て256MBを設定しています。sda13のパーティションのtypeにはWindowsの一般的なデータパーティションを示す`EBD0A0A2-B9E5-4433-87C0-68B6B72699C7`を指定し、パーティションUUIDには先ほど用意した`f2b1b3fc-81da-4ef8-9494-32dd9c0b20a0`を設定します。パーティションの名前は無くても構わないのですが、一応"DOS"としてあります。
+次にESPを置き換えるためのFATパーティション(ESPのファイルシステムはFAT16やFAT32)を一旦sda13に用意します。sda13のstartは物理的にはsda1の後になるのでsda1のstartとsizeを加えた 17272832 + 33554432 = **50827264** となります。ESPの容量は最低でも100MB程度は欲しいので余裕を見て256MBを設定しています。sda13のパーティションのtypeにはWindowsの一般的なデータパーティションを示す`EBD0A0A2-B9E5-4433-87C0-68B6B72699C7`を指定し、パーティションUUIDには先ほど用意した`91b804e1-8930-48ee-817d-c42exx9b95b1`を設定します。パーティションの名前は無くても構わないのですが、一応"DOS"としてあります。
 
 新規にパーティションを用意する場合、startとsizeは必ず8の倍数になるよう設定します。古いストレージではセクタサイズが512バイトでしたが、現在のストレージではセクタサイズは4096バイトが一般的で、従来と互換性をもたせるため512バイト単位でアクセスできるようになっています。これを区別するためにストレージ上のセクタを物理セクタ、アクセス可能なセクタを論理セクタと呼んでいて、物理セクタサイズを論理セクタサイズで割った値(つまり 4096 / 512 )が8というわけです。8の倍数にそろっていないと物理セクタとアクセスするセクタの境界が合わないことでパフォーマンスに悪影響があります。ちなみに本記事の例で使用しているSSDは少々古いものであるため物理セクタサイズも論理セクタと同じ512バイトです。
 
@@ -419,33 +423,55 @@ sda1のサイズが103.6GBから16GBと小さくなり、sda12は物理的にsda
 
 ## OS用パーティションの作成
 
-続いてWindowsやmacOS用のパーティションを用意します。
+続いてWindowsやmacOSをインストールするためのパーティションを用意します。
 
-> 以前の本記事では、WindowsやmacOS用のパーティションの作成はそれぞれのOSのインストール時に作成していました。WindowsやmacOSでパーティションを作成するとChromeOS Flex用のパーティションが破壊されるため、修復作業が必要になっていました。しかしこれらのOSのインストールに必要なパーティションを予め作成しておけば各OSのインストーラでパーティションを作ることが無くなり、結果としてパーティションの破壊を防ぎ修復作業も不要になります。
+> 以前の本記事では、WindowsやmacOS用のパーティションの作成はそれぞれのOSのインストール時に作成していました。しかしWindowsやmacOSでパーティションを作成するとChromeOS Flex用のパーティションが破壊されるため、修復作業が必要になっていました。これらのOSのインストールに必要なパーティションを予め作成しておけば各OSのインストーラでパーティションを作ることが無くなり、結果としてパーティションの破壊を防ぎ修復作業も不要になります。
 
 ### Windowsの場合
 
-Windows 10や11では、次の3つのパーティションが必要になります。
+Windows 10や11をインストールするには、次の3つのパーティションが必要になります。
 
-<table>
-  <caption>Windowsでの必須パーティション</caption>
-  <thead>
-    <tr>
-      <th>パーティション</th> <th>パーティションタイプを示すUUID</th>
-    </tr>
-  </thead>
-  <tr>
-    <td> 予約パーティション </td> <td>E3C9E316-0B5C-4DB8-817D-F92DF00215AE</td>
-  </tr>
-  <tr>
-    <td> 回復パーティション </td> <td>DE94BBA4-06D1-4D40-A16A-BFD50179D6AC</td>
-  </tr>
-  <tr>
-    <td> データパーティション</td> <td>EBD0A0A2-B9E5-4433-87C0-68B6B72699C7</td>
-  </tr>
-</table>
+| 名前 | タイプを示すUUID | 内容 |
+|--------|--------------------------------------|------------|
+| 予約   | E3C9E316-0B5C-4DB8-817D-F92DF00215AE | マイクロソフトで予約されている。サイズは16MB   |
+| 回復   | DE94BBA4-06D1-4D40-A16A-BFD50179D6AC | Windowsの回復情報を保存する。サイズは1～2GB程度 |
+| データ | EBD0A0A2-B9E5-4433-87C0-68B6B72699C7 | Windowsのシステムとデータ用(Cドライブ)     |
 
-そこでこれらのパーティションを事前に作成します。
+パーティションの順番は任意ですが、ここでは予約パーティションをsda13、回復パーティションをsda14, データ用パーティションをsda15の順に割り当てて作成します。
+
+まずuuidgenを使ってパーティション用のIDを3個用意します。
+
+```
+root@debian:/mnt# uuidgen > uuids
+root@debian:/mnt# uuidgen >> uuids
+root@debian:/mnt# uuidgen >> uuids
+root@debian:/mnt# cat uuids
+2ed439bd-96c9-48ee-a8f6-34e8xx4d3cf7
+2614bf81-4be6-4aa8-adf5-4432xx13cb7a
+c1ff36c2-0b82-4b33-9ee6-5bc5xxb2ffb2
+root@debian:/mnt# 
+```
+
+次にp3-sda-dumpを元にp4-sda-dumpを作ります。
+
+```command
+root@debian:/mnt# cp p3-sda-dump p4-sda-dump
+root@debian:/mnt# vi p4-sda-dump
+```
+
+修正はsda13、sda14、sda15の行の追加となりますが、ここで注意するのは各パーティションのスタートとサイズの値です。
+
+sda13のスタートは、sda12のstartにsizeを加えた値の **51351552** となります。sda13は予約パーティションなのでサイズは16MBですから、**32768**(=16\*1024\*1024/512)となります。これによって回復パーティションであるsda14のスタートが決まり、**51384320** (= 51351552 + 32768)となります。回復パーティションのサイズは1GBあれば通常は問題ないので、**2097152** (= 1024 \* 1024 \* 1024 / 512)を指定します。
+
+残りのディスク領域をWindowsのシステムとデータ用のsda15に割り当てるわけで、スタートは **51351552**(= 51384320 + 2097152)となりますが、サイズについては少し注意が必要です。というのは残りの領域がブロック数でいくつあるのかを確認する必要があるからです。最初のほうで表示したp1-sda-dumpのリストに次の行が含まれています。
+
+```text
+last-lba: 234441614
+```
+
+これはデータとして利用できる最終LBAの次の値を示しています。ですからsda15のサイズにはlast-lbaの234441614からスタートの53481472を引いた180960142ブロックを割り当てられますが、180960142は8の倍数ではないので8の倍数で切り捨てて **180960136** を指定します。
+
+こうして各パーティションのstartとsizeが決まり、編集後のp4-sda-dumpの変更内容は次のようになります。
 
 ```command
 root@debian:/mnt# diff -U1 p3-sda-dump p4-sda-dump
@@ -453,15 +479,64 @@ root@debian:/mnt# diff -U1 p3-sda-dump p4-sda-dump
 +++ p4-sda-dump 2024-05-31 08:31:26.000000000 +0000
 @@ -20 +20,4 @@
  /dev/sda12 : start=    50827264, size=      524288, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, uuid=F4CD81A7-771B-B54D-89B9-DCA60C886D4F, name="EFI-SYSTEM", attrs="LegacyBIOSBootable"
-+/dev/sda13 : start=    51351552, size=       32768, type=E3C9E316-0B5C-4DB8-817D-F92DF00215AE, uuid=2ed439bd-96c9-48ee-a8f6-34e8b54d3cf7, name="Microsoft reserved partition", attrs="GUID:63"
-+/dev/sda14 : start=    51384320, size=     2097152, type=DE94BBA4-06D1-4D40-A16A-BFD50179D6AC, uuid=2614bf81-4be6-4aa8-adf5-44329b13cb7a, attrs="RequiredPartition GUID:63"
-+/dev/sda15 : start=    53481472, size=   180960136, type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7, uuid=c1ff36c2-0b82-4b33-9ee6-5bc551b2ffb2, name="Basic data partition"
++/dev/sda13 : start=    51351552, size=       32768, type=E3C9E316-0B5C-4DB8-817D-F92DF00215AE, uuid=2ed439bd-96c9-48ee-a8f6-34e8xx4d3cf7, name="Microsoft reserved partition", attrs="GUID:63"
++/dev/sda14 : start=    51384320, size=     2097152, type=DE94BBA4-06D1-4D40-A16A-BFD50179D6AC, uuid=2614bf81-4be6-4aa8-adf5-4432xx13cb7a, attrs="RequiredPartition GUID:63"
++/dev/sda15 : start=    53481472, size=   180960136, type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7, uuid=c1ff36c2-0b82-4b33-9ee6-5bc5xxb2ffb2, name="Basic data partition"
 root@debian:/mnt# 
 ```
 
+p4-sda-dumpができたので、パーティションテーブルを更新します。
+
 ```command
---- p1-sda-list	2024-05-31 04:58:24.000000000 +0000
-+++ p4-sda-list	2024-05-31 08:33:12.000000000 +0000
+root@debian:/mnt# sfdisk /dev/sda < p4-sda-dump
+--- (中略) ---
+root@debian:/mnt# sfdisk --list /dev/sda | tee p4-sda-list
+Disk /dev/sda: 111.79 GiB, 120034123776 bytes, 234441648 sectors
+Disk model: INTEL SSDSC2BW12
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: gpt
+Disk identifier: 375C8B32-FD8D-464E-91A6-FB83A244B8C4
+
+Device        Start       End   Sectors  Size Type
+/dev/sda1  17272832  50827263  33554432   16G Linux filesystem
+/dev/sda2        69     32836     32768   16M ChromeOS kernel
+/dev/sda3   8884224  17272831   8388608    4G ChromeOS root fs
+/dev/sda4     32837     65604     32768   16M ChromeOS kernel
+/dev/sda5    495616   8884223   8388608    4G ChromeOS root fs
+/dev/sda6        65        65         1  512B ChromeOS kernel
+/dev/sda7        66        66         1  512B ChromeOS root fs
+/dev/sda8    331776    364543     32768   16M Linux filesystem
+/dev/sda9        67        67         1  512B ChromeOS reserved
+/dev/sda10       68        68         1  512B ChromeOS reserved
+/dev/sda11       64        64         1  512B unknown
+/dev/sda12 50827264  51351551    524288  256M EFI System
+/dev/sda13 51351552  51384319     32768   16M Microsoft reserved
+/dev/sda14 51384320  53481471   2097152    1G Windows recovery environment
+/dev/sda15 53481472 234441607 180960136 86.3G Microsoft basic data
+
+Partition table entries are not in disk order.
+root@debian:/mnt# 
+```
+
+p3-sda-listの結果と比べると次のように3つのパーティションが増えていることがわかります。
+
+```command
+root@debian:/mnt# diff -U0 p3-sda-list p4-sda-list
+--- p3-sda-list 2024-05-31 05:33:18.000000000 +0000
++++ p4-sda-list 2024-05-31 08:33:12.000000000 +0000
+@@ -21,0 +22,3 @@
++/dev/sda13 51351552  51384319     32768   16M Microsoft reserved
++/dev/sda14 51384320  53481471   2097152    1G Windows recovery environment
++/dev/sda15 53481472 234441607 180960136 86.3G Microsoft basic data
+root@debian:/mnt#
+```
+
+<!--
+```command
+--- p1-sda-list 2024-05-31 04:58:24.000000000 +0000
++++ p4-sda-list 2024-05-31 08:33:12.000000000 +0000
 @@ -10 +10 @@
 -/dev/sda1  17272832 234441599 217168768 103.6G Linux filesystem
 +/dev/sda1  17272832  50827263  33554432   16G Linux filesystem
@@ -474,15 +549,16 @@ root@debian:/mnt#
 ```
 
 ```command
---- p3-sda-list	2024-05-31 05:33:18.000000000 +0000
-+++ p4-sda-list	2024-05-31 08:33:12.000000000 +0000
+--- p3-sda-list 2024-05-31 05:33:18.000000000 +0000
++++ p4-sda-list 2024-05-31 08:33:12.000000000 +0000
 @@ -21,0 +22,3 @@
 +/dev/sda13 51351552  51384319     32768   16M Microsoft reserved
 +/dev/sda14 51384320  53481471   2097152    1G Windows recovery environment
 +/dev/sda15 53481472 234441607 180960136 86.3G Microsoft basic data
 ```
+-->
 
-
+この状態でDebian LiveをシャットダウンしてPCの電源を入れるとChromeOS Flexの起動を確認できます。もし起動しない場合は、今までの手順を見直します。Debian Liveを使って修復するか、またはChromeOS Flexのインストールからやり直すことになるかもしれません。
 
 ### macOSの場合
 
@@ -490,11 +566,6 @@ root@debian:/mnt#
 APFSのGUIDである`7C3457EF-0000-11AA-AA11-00306543ECAC`、nameを`"Customer"`に変更します(変更は必須では無いと思いますが試していません)。さらにsda13がsda12の直後になるように、startにsda12のsizeとstartを加えた値を設定しsizeには残り容量に収まる範囲で適当な値(例えば50GB程度)を割り当てます。macOSのインストール時にsda13をAPFSでフォーマットする必要がありますが、フォーマットとともにsda13は残りの領域全てを含むサイズに拡張されるので厳密なサイズを設定する必要はありません。
 -->
 
-
--->
-
-
-この状態でDebian LiveをシャットダウンしてPCの電源を入れるとChromeOS Flexの起動を確認できます。もし起動しない場合は、今までの手順を見直します。Debian Liveを使って修復するか、またはChromeOS Flexのインストールからやり直すことになるかもしれません。
 
 
 ```command
