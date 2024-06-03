@@ -1,0 +1,21 @@
+label: gpt
+label-id: 889D680A-FE77-D946-A383-8506969667B3
+device: /dev/sda
+unit: sectors
+first-lba: 34
+last-lba: 236978142
+sector-size: 512
+
+/dev/sda1 : start=    17272832, size=    33554432, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=B426A156-4340-204D-9624-91ECB5AD6F06, name="STATE"
+/dev/sda2 : start=    17141760, size=      131072, type=FE3A2A5D-4F32-41A7-B725-ACCC3285A309, uuid=E766CD39-856C-7545-B104-746B7EBB7246, name="KERN-A", attrs="GUID:48,56"
+/dev/sda3 : start=     8884224, size=     8257536, type=3CB8E202-3B7E-47DD-8A3C-7FF2A13CFCEC, uuid=6254B027-CDB3-6440-BCAE-A45E28231145, name="ROOT-A"
+/dev/sda4 : start=     8753152, size=      131072, type=FE3A2A5D-4F32-41A7-B725-ACCC3285A309, uuid=D3EEA04F-C1D2-3E48-BB90-FD54A9E4CDB9, name="KERN-B", attrs="GUID:49,56"
+/dev/sda5 : start=      495616, size=     8257536, type=3CB8E202-3B7E-47DD-8A3C-7FF2A13CFCEC, uuid=0754D830-904A-8E42-BF0A-881F1398715D, name="ROOT-B"
+/dev/sda6 : start=          65, size=           1, type=FE3A2A5D-4F32-41A7-B725-ACCC3285A309, uuid=064DF812-E569-BF45-83A2-0AA39D445816, name="KERN-C", attrs="GUID:52,53,54,55"
+/dev/sda7 : start=          66, size=           1, type=3CB8E202-3B7E-47DD-8A3C-7FF2A13CFCEC, uuid=22D06FAA-E5F9-F947-B8DB-12B8372D2A64, name="ROOT-C"
+/dev/sda8 : start=      331776, size=       32768, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=F2FB5794-5B8E-FD48-8702-B1872219A227, name="OEM"
+/dev/sda9 : start=          67, size=           1, type=2E0A753D-9E48-43B0-8337-B15192CB1B5E, uuid=A9D4F150-3DE0-2845-8E2A-68D446698246, name="reserved"
+/dev/sda10 : start=          68, size=           1, type=2E0A753D-9E48-43B0-8337-B15192CB1B5E, uuid=3776D1C7-87BE-8544-B534-B081FB59B0D2, name="reserved"
+/dev/sda11 : start=          64, size=           1, type=CAB6E88E-ABF3-4102-A07A-D4BB9BE3C1D3, uuid=2D9AEAA0-C934-674D-84AA-3AECF2081EA4, name="RWFW"
+/dev/sda12 : start=    50827264, size=      524288, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, uuid=4B628DE1-FE66-7840-8C8C-74B0ADA8FAB3, name="EFI-SYSTEM", attrs="LegacyBIOSBootable"
+/dev/sda13 : start=    51351552, size=   185364440, type=7C3457EF-0000-11AA-AA11-00306543ECAC, uuid=A27CC8AC-E775-4F3E-AEBA-13C3A2F79802, name="Customer"
