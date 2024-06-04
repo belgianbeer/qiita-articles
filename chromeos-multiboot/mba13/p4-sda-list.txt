@@ -19,6 +19,6 @@ Device        Start       End   Sectors  Size Type
 /dev/sda10       68        68         1  512B ChromeOS reserved
 /dev/sda11       64        64         1  512B unknown
 /dev/sda12 50827264  51351551    524288  256M EFI System
-/dev/sda13 51351552 236978135 185626584 88.5G Apple APFS
+/dev/sda13 51351552 156209151 104857600   50G Apple APFS
 
 Partition table entries are not in disk order.
