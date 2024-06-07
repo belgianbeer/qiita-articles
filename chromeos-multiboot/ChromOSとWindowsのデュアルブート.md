@@ -355,12 +355,6 @@ root@debian:/mnt# diff -U0 p2-sda-dump p3-sda-dump
 root@debian:/mnt#
 ```
 
-<!--
-sda8は、元の16MBにsda12の64MBのサイズを加えた80MB(163840セクタ)に変更しています。sda12はtypeとuuidはそのままで、sda13のstartとsizeの値に変更します。そしてsda13は不要なので単純に削除します。
-
-Macの場合はsda13を削除せず、typeをAPFSのGUIDである`7C3457EF-0000-11AA-AA11-00306543ECAC`、nameを`"Customer"`に変更します(変更は必須では無いと思いますが試していません)。さらにsda13がsda12の直後になるように、startにsda12のsizeとstartを加えた値を設定しsizeには残り容量に収まる範囲で適当な値(例えば50GB程度)を割り当てます。macOSのインストール時にsda13をAPFSでフォーマットする必要がありますが、フォーマットとともにsda13は残りの領域全てを含むサイズに拡張されるので厳密なサイズを設定する必要はありません。
--->
-
 正しく変更できているのを確認したら、再びsfdiskコマンドでパーティションテーブルを書き換えます。
 
 ```command
@@ -423,17 +417,17 @@ sda1のサイズが103.6GBから16GBと小さくなり、sda12は物理的にsda
 
 続いてWindowsやmacOSをインストールするためのパーティションを用意します。
 
-> 以前の本記事では、WindowsやmacOS用のパーティションの作成はそれぞれのOSのインストール時に作成していました。しかしWindowsやmacOSでパーティションを作成するとChromeOS Flex用のパーティションが破壊されるため、修復作業が必要になっていました。これらのOSのインストールに必要なパーティションを予め作成しておけば各OSのインストーラでパーティションを作ることが無くなり、結果としてパーティションの破壊を防ぎ修復作業も不要になります。
-
 ### Windowsの場合
+
+以前の本記事では、Windowsのパーティションはインストール時に作成していました。しかしインストーラでパーティションを作成するとChromeOS Flex用のパーティションが破壊されるため、修復作業が必要でした。Windowsのインストールに必要なパーティションを予め作成しておけばインストーラでパーティションを作ることが無くなり、結果としてパーティションの破壊を防ぎ修復作業も不要になります。
 
 Windows 10や11をインストールするには、次の3つのパーティションが必要になります。
 
 | 名前 | タイプを示すUUID | 内容 |
 |--------|--------------------------------------|------------|
 | 予約   | E3C9E316-0B5C-4DB8-817D-F92DF00215AE | マイクロソフトで予約されている。サイズは16MB   |
-| 回復   | DE94BBA4-06D1-4D40-A16A-BFD50179D6AC | Windowsの回復情報を保存する。サイズは1～2GB程度 |
 | データ | EBD0A0A2-B9E5-4433-87C0-68B6B72699C7 | Windowsのシステムとデータ用(Cドライブ)     |
+| 回復   | DE94BBA4-06D1-4D40-A16A-BFD50179D6AC | Windowsの回復情報を保存する。サイズは1～2GB程度 |
 
 パーティションの順番は任意ですが、ここでは予約パーティションをsda13、回復パーティションをsda14, データ用パーティションをsda15の順に割り当てて作成します。
 
@@ -469,7 +463,7 @@ last-lba: 234441614
 
 これはデータとして利用できる最終LBAを示しています。ですからsda15のサイズには最大でlast-lbaの234441614からスタートの53481472を引いて1を加えた180960143ブロックを割り当てられますが、180960143は8の倍数ではないので8の倍数で切り捨てて **180960136** を指定します。
 
-なお、パーティションの名前やアトリビュートについては次の例と同じものにします。こうして各パーティションのstartとsizeが決まり、編集後のp4-sda-dumpの変更内容は次のようになります。
+なお、パーティションの名前やアトリビュートについては次の例と同じものにします(インストール済のWindowsから引用)。こうして各パーティションのstartとsizeが決まり、編集後のp4-sda-dumpの変更内容は次のようになります。
 
 ```command
 root@debian:/mnt# diff -U1 p3-sda-dump p4-sda-dump
@@ -531,27 +525,6 @@ root@debian:/mnt# diff -U0 --ignore-space-change p3-sda-list p4-sda-list
 root@debian:/mnt#
 ```
 
-<!--
---- p1-sda-list 2024-05-31 04:58:24.000000000 +0000
-+++ p4-sda-list 2024-05-31 08:33:12.000000000 +0000
-@@ -10 +10 @@
--/dev/sda1  17272832 234441599 217168768 103.6G Linux filesystem
-+/dev/sda1  17272832  50827263  33554432   16G Linux filesystem
-@@ -21 +21,4 @@
--/dev/sda12   364544    495615    131072    64M EFI System
-+/dev/sda12 50827264  51351551    524288  256M EFI System
-+/dev/sda13 51351552  51384319     32768   16M Microsoft reserved
-+/dev/sda14 51384320  53481471   2097152    1G Windows recovery environment
-+/dev/sda15 53481472 234441607 180960136 86.3G Microsoft basic data
-
---- p3-sda-list 2024-05-31 05:33:18.000000000 +0000
-+++ p4-sda-list 2024-05-31 08:33:12.000000000 +0000
-@@ -21,0 +22,3 @@
-+/dev/sda13 51351552  51384319     32768   16M Microsoft reserved
-+/dev/sda14 51384320  53481471   2097152    1G Windows recovery environment
-+/dev/sda15 53481472 234441607 180960136 86.3G Microsoft basic data
--->
-
 ここまでの作業が終了したら、Debian Liveをシャットダウンします。
 
 ```command
@@ -560,23 +533,97 @@ root@debian:/mnt# poweroff
 
 シャットダウン後にDebian LiveのUSBメモリを抜いて電源を入れると、ChromeOS Flexの起動を確認できます。もし起動しない場合は、今までの手順を見直します。Debian Liveを使って修復するか、またはChromeOS Flexのインストールからやり直すことになるかもしれません。
 
-ChromeOS Flexの起動を確認できたら、次はWindowsのインストール作業になります。PCにWindowsのインストール用USBメモリを差してUSBメモリから起動しインストーラを実行します。インストール時の注意は、Windowsをインストールするパーティションを事前に用意したsda15を指定してインストールすることです。それさえ間違えなければ、あとは通常のWindowsのインストールとなんら変わらず進み、しばらくしてWindowsの初期設定画面が現れるはずです。
+なお、途中で作成した**p3-sda-dumpは、ChromeOS Flexのパーティションが壊れた時の修復に必要となるので必ず保管してください**。
+
+ChromeOS Flexの起動を確認できたら、次はWindowsのインストール作業になります。PCにWindowsのインストール用USBメモリを差してUSBメモリから起動しインストーラを実行します。インストール時の注意は、Windowsをインストールするパーティションを事前に用意したsda15を指定してインストールすることです。それさえ間違えなければ、あとは通常のWindowsのインストールとなんら変わりはなく、インストールが完了すればWindowsの初期設定画面が現れるはずです。
 
 ### macOSの場合
 
-<!--
-APFSのGUIDである`7C3457EF-0000-11AA-AA11-00306543ECAC`、nameを`"Customer"`に変更します(変更は必須では無いと思いますが試していません)。さらにsda13がsda12の直後になるように、startにsda12のsizeとstartを加えた値を設定しsizeには残り容量に収まる範囲で適当な値(例えば50GB程度)を割り当てます。macOSのインストール時にsda13をAPFSでフォーマットする必要がありますが、フォーマットとともにsda13は残りの領域全てを含むサイズに拡張されるので厳密なサイズを設定する必要はありません。
--->
+macOSの場合は、インストール時にディスクユーティリティを使ってパーティションのフォーマットが必要になります。色々試してみましたがフォーマット時にChromeOS Flexのパーティション情報が破壊され、**macOSインストール後にパーティションの修復が必要になります**。
 
-これでWindowsやmacOSなどの他のOSをインストールする準備ができたので、PCをシャットダウンします。Debian LiveのUSBメモリとパーティションテーブルのメモをとった記録用のUSBメモリは後の作業で使用するのでそのまま保管してください。
+まずmacOS用のパーティションをsda13に作成します。sda13はAPFSのGUIDである`7C3457EF-0000-11AA-AA11-00306543ECAC`を使います。sda13のスタートはsda12のstartにsizeを加えた値 50827264 + 524288 = **51351552** となります。
 
-## WindowsまたはmacOSのインストール
+サイズはディスクユーティリティでフォーマットする際に利用できる最大サイズに広げられるため、この時点では適当な値(例えば50GB)を割り当てれば問題ありません。nameは`"Customer"`とします。
 
-インストールが終了したらOSが動くことを確認します。この時点では**WindowsやmacOS等インストールしたOSは起動しますが、ChromeOS Flexは起動できなくなっています**。理由は最初のところでも書いたように、WindowsやmacOSがインストールのためにパーティションテーブルの変更を行うと、ChromeOS Flexのパーティションテーブルを書き換えてしまうためです。
+```command
+root@debian:/mnt# uuidgen
+cea1b7c3-961a-439b-83c4-42d4xxf092e3
+root@debian:/mnt# cp p3-sda-dump p4-sda-dump
+root@debian:/mnt# vi p4-sda-dump
+```
+
+p4-sda-dumpにはsda13の行を追加します。p3-sda-dumpからの変更点は次のようになります。
+
+```command
+root@debian:/mnt# diff -U1 p3-sda-dump p4-sda-dump
+--- p3-sda-dump 2024-06-03 20:13:03.000000000 +0900
++++ p4-sda-dump 2024-06-04 06:07:02.000000000 +0900
+@@ -20 +20,2 @@
+ /dev/sda12 : start=    50827264, size=      524288, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, uuid=4B628DE1-FE66-7840-8C8C-74B0ADA8FAB3, name="EFI-SYSTEM", attrs="LegacyBIOSBootable"
++/dev/sda13 : start=    51351552, size=   104857600, type=7C3457EF-0000-11AA-AA11-00306543ECAC, uuid=cea1b7c3-961a-439b-83c4-42d4xxf092e3, name="Customer"
+root@debian:/mnt# 
+```
+
+p4-sda-dumpの修正が確認できたら、パーティションテーブルを更新します。
+
+```command
+root@debian:/mnt# sfdisk /dev/sda < p4-sda-dump
+--- (中略) ---
+root@debian:/mnt# sfdisk --list /dev/sda | tee p4-sda-list
+Disk /dev/sda: 113 GiB, 121332826112 bytes, 236978176 sectors
+Disk model: APPLE SSD TS128C
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: gpt
+Disk identifier: 889D680A-FE77-D946-A383-8506969667B3
+
+Device        Start       End   Sectors  Size Type
+/dev/sda1  17272832  50827263  33554432   16G Linux filesystem
+/dev/sda2  17141760  17272831    131072   64M ChromeOS kernel
+/dev/sda3   8884224  17141759   8257536  3.9G ChromeOS root fs
+/dev/sda4   8753152   8884223    131072   64M ChromeOS kernel
+/dev/sda5    495616   8753151   8257536  3.9G ChromeOS root fs
+/dev/sda6        65        65         1  512B ChromeOS kernel
+/dev/sda7        66        66         1  512B ChromeOS root fs
+/dev/sda8    331776    364543     32768   16M Linux filesystem
+/dev/sda9        67        67         1  512B ChromeOS reserved
+/dev/sda10       68        68         1  512B ChromeOS reserved
+/dev/sda11       64        64         1  512B unknown
+/dev/sda12 50827264  51351551    524288  256M EFI System
+/dev/sda13 51351552 156209151 104857600   50G Apple APFS
+
+Partition table entries are not in disk order.
+root@debian:/mnt#
+```
+
+これでmacOSをインストールする準備ができたのでシャットダウンしてmacOSをインストールします。Debian LiveのUSBメモリとパーティションテーブルのメモをとった記録用のUSBメモリは後の作業で使用するのでそのまま保管してください。
+
+```command
+root@debian:/mnt# poweroff
+```
+
+USBメモリを抜いてMacの電源を入れると、ChromeOS Flexの起動を確認できます。
+
+続いてmacOSのインストールを行います。macOSのインストーラのUSBメモリを使ってMacを起動します。macOSのインストーラが起動したら、以後の手順は次のようになります。
+
+macOSのインストーラが起動したら、ディスクユーティリティを使ってmacOS用のパーティションをAPFSでフォーマットします。
+
+1. 「APFS物理ストアdiskXXX」を選択して「パーティション作成」をクリックします。
+2. 50GB程度の「未使用のパーティション」を選択
+3. パーティション情報の名前は「Macintosh HD」を指定
+4. フォーマットは「APFS」を選択
+5. 適用
+
+これでmacOSインストール用のパーティションができるので、ディスクユーティリティを終了してmacOSのインストールを実行し、用意した「Macintosh HD」にインストールします。
+
+インストールが終了したらmacOSが動くことを確認します。この時点では**macOSは起動しますが、ChromeOS Flexは起動できなくなっています**。理由は最初のところでも書いたように、macOSのディスクユーティリティがインストールのためにパーティションをフォーマットすると、ChromeOS Flexのパーティションテーブルを書き換えてしまうためです。次にパーティションテーブルの修復方法を解説します。
 
 ## ChromeOS FLex用パーティションテーブルの修復
 
-再びDebian LiveのUSBメモリで起動し、起動しなくなっているChromeOS Flexのパーティションテーブルの修復を行います。Debian Liveが起動したら、前の作業で記録をとったUSBメモリを/mntにマウントします。なおaptコマンドを使うことはありません。
+本修復作業はmacOSでは必須ですが、Windowsではインストール直後にパーティションテーブルの修復は必要ありません。しかしWindowsでも何かのきっかけでChromeOS Flex用のパーティションテーブルが書き換わり、修復作業が必要になることがあります。
+
+修復もDebian Liveを使うのでDebian LiveのUSBメモリで起動し、前の作業で記録をとったUSBメモリを/mntにマウントします。なおaptコマンドを使うことはありません。
 
 ```command
 user@debian:~$ sudo -i
@@ -588,14 +635,14 @@ root@debian:/mnt#
 起動しなくなったパーティションテーブルの状況を`sfdisk --list`で確認します。
 
 ```command
-root@debian:/mnt# sfdisk --list /dev/sda | tee p4-sda-list
-Disk /dev/sda: 111.79 GiB, 120034123776 bytes, 234441648 sectors
-Disk model: INTEL SSDSC2BW12
+root@debian:/mnt# sfdisk --list /dev/sda | tee p5-sda-list
+Disk /dev/sda: 113 GiB, 121332826112 bytes, 236978176 sectors
+Disk model: APPLE SSD TS128C
 Units: sectors of 1 * 512 = 512 bytes
 Sector size (logical/physical): 512 bytes / 512 bytes
 I/O size (minimum/optimal): 512 bytes / 512 bytes
 Disklabel type: gpt
-Disk identifier: AC161E76-BF4B-924D-9C72-06CE3C6EABCF
+Disk identifier: 889D680A-FE77-D946-A383-8506969667B3
 
 Device        Start       End   Sectors  Size Type
 /dev/sda1        64        64         1  512B unknown
@@ -603,56 +650,52 @@ Device        Start       End   Sectors  Size Type
 /dev/sda3        66        66         1  512B ChromeOS root fs
 /dev/sda4        67        67         1  512B ChromeOS reserved
 /dev/sda5        68        68         1  512B ChromeOS reserved
-/dev/sda6        69     32836     32768   16M ChromeOS kernel
-/dev/sda7     32837     65604     32768   16M ChromeOS kernel
-/dev/sda8     69632    233471    163840   80M Linux filesystem
-/dev/sda9    233472   8622079   8388608    4G ChromeOS root fs
-/dev/sda10  8622080  17010687   8388608    4G ChromeOS root fs
-/dev/sda11 17010688  50565119  33554432   16G Linux filesystem
-/dev/sda12 50565120  51089407    524288  256M EFI System
-/dev/sda13 51089408  51122175     32768   16M Microsoft reserved
-/dev/sda14 51122176 234440703 183318528 87.4G Microsoft basic data
+/dev/sda6    331776    364543     32768   16M Linux filesystem
+/dev/sda7    495616   8753151   8257536  3.9G ChromeOS root fs
+/dev/sda8   8753152   8884223    131072   64M ChromeOS kernel
+/dev/sda9   8884224  17141759   8257536  3.9G ChromeOS root fs
+/dev/sda10 17141760  17272831    131072   64M ChromeOS kernel
+/dev/sda11 17272832  50827263  33554432   16G Linux filesystem
+/dev/sda12 50827264  51351551    524288  256M EFI System
+/dev/sda13 51351552 236715991 185364440 88.4G Apple APFS
 ```
 
-sda13とsda14がWindowsのインストールによって追加されたパーティションですが、さらにsda15も増えている場合があります。Macの場合は事前にsda13を用意しているのでパーティション数に変化は無いですが、sda13に関してはsize(Sectors)が変わっているはずです。
+ChromeOS Flexインストール時点の1から12を見ると(p3-sda-list参照)、sda12は事前にパーティションインデックスと物理的順番を一致するように対処してあったので変化はありません。しかしsda1からsda11までは、ストレージ上の物理的順番にパーティションテーブルが並んでしまっています。macOSのディスクユーティリティが、パーティションの作成で物理的順番に並べ替えてしまうようです。このままではChromeOS Flexが起動できないので、パーティションテーブルの並び順を元の順番に修正します。
 
-ChromeOS Flexインストール時点の1から12を見ると、sda12は事前にパーティションインデックスと物理的順番を一致するように対処してあったので変化はありません。しかしsda1からsda11までは、ストレージ上の物理的順番にパーティションテーブルが並んでしまっています。どうやらWindowsやmacOSでは、パーティションの追加等でパーティションテーブルを書き換えると物理的順番に並べ替えてしまうようです。このままではChromeOS Flexが起動できないので、パーティションテーブルの並び順を元の順番に修正します。
-
-まず`sfdisk --dump`で現状のパーティションテーブルをp4-sda-dumpに保存します。
+まず`sfdisk --dump`で現状のパーティションテーブルをp5-sda-dumpに保存します。
 
 ```command
-root@debian:/mnt# sfdisk --dump /dev/sda > p4-sda-dump
+root@debian:/mnt# sfdisk --dump /dev/sda > p5-sda-dump
 ```
 
-p4-sda-dumpを前に保存したp3-sda-dumpと比べると、順番は変わっているもののパーティションの大きさやtype, uuidの情報は変わっていないことがわかります。そこで今回追加されたsda13, sda14(あるいはsda15まで)のパーティション情報をp3-sda-dumpに追加してストレージに反映すれば、ChromeOS Flexのパーティションテーブルを修復できます。
+p5-sda-dumpを前に保存したp3-sda-dumpと比べると、順番は変わっているもののパーティションの大きさやtype, uuidの情報は変わっていないことがわかります。sda13以降のパーティションの情報wをp3-sda-dumpに追加してストレージに反映すれば、ChromeOS Flexのパーティションテーブルを修復できます。
 
 修復するためのパーティションテーブルは、エディタを使うこともなく次のコマンドラインで作成できます。
 
 ```command
-root@debian:/mnt# cp p3-sda-dump p5-sda-dump
-root@debian:/mnt# tail -n 2 p4-sda-dump >> p5-sda-dump
+root@debian:/mnt# cp p3-sda-dump p6-sda-dump
+root@debian:/mnt# tail -n 1 p5-sda-dump >> p6-sda-dump
 ```
 
-2つめの`tail -n`のパラメータは、増えたパーティション数に合わせて1, 2, 3等を指定します。Macの場合はsda13を事前に用意しているため、sda13の行をmacOSインストール後のものと置き換えます。p5-sda-dumpの修正ができたら元になったp3-sda-dumpとdiffコマンドで比較して、正しく変更できたかどうかを確認します。
+2つめの`tail -n`のパラメータは、増えたパーティション数に合わせて1, 2, 3等を指定します。p6-sda-dumpの修正ができたら元になったp3-sda-dumpとdiffコマンドで比較して、正しく変更できたかどうかを確認します。
 
 ```command
-root@debian:/mnt# diff -U1  p3-sda-dump p5-sda-dump
---- p3-sda-dump 2023-04-26 12:30:22.078533000 +0900
-+++ p5-sda-dump 2023-04-26 12:30:22.078899000 +0900
-@@ -20 +20,3 @@
- /dev/sda12 : start=    50565120, size=      524288, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, uuid=FF81FED5-A756-3C44-9693-3E41EE823552, name="EFI-SYSTEM", attrs="LegacyBIOSBootable"
-+/dev/sda13 : start=    51089408, size=       32768, type=E3C9E316-0B5C-4DB8-817D-F92DF00215AE, uuid=46FFCC48-8858-4FF6-BE06-E352C55E9FD1, name="Microsoft reserved partition", attrs="GUID:63"
-+/dev/sda14 : start=    51122176, size=   183318528, type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7, uuid=2C6B3DFE-8DF4-4BF1-8C1F-01173A1042E1, name="Basic data partition"
+root@debian:/mnt# diff -U1 p3-sda-dump.txt p6-sda-dump.txt
+--- p3-sda-dump 2024-06-03 20:13:03.321219000 +0900
++++ p6-sda-dump 2024-06-04 06:32:12.000000000 +0900
+@@ -20 +20,2 @@
+ /dev/sda12 : start=    50827264, size=      524288, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, uuid=4B628DE1-FE66-7840-8C8C-74B0ADA8FAB3, name="EFI-SYSTEM", attrs="LegacyBIOSBootable"
++/dev/sda13 : start=    51351552, size=   185364440, type=7C3457EF-0000-11AA-AA11-00306543ECAC, uuid=D6298900-687F-414B-8BF4-6FF6CFC39642, name="Customer"
 root@debian:/mnt# 
 ```
 
 問題なければ修正したパーティションテーブルをストレージに反映します。
 
 ```command
-root@debian:/mnt# sfdisk /dev/sda < p5-sda-dump
+root@debian:/mnt# sfdisk /dev/sda < p6-sda-dump
 ```
 
-これでChromeOS Flexと他OSのマルチブート環境の設定は完了となりますが、将来WindowsやmacOSでのパーティションの変更でChromeOS Flexのパーティションが壊れた時に備えて途中で用意したp3-sda-dumpを保管しておいてください。
+これでChromeOS Flexと他OSのマルチブート環境の設定は完了となりますが、将来WindowsやmacOSでのパーティションの変更でChromeOS Flexのパーティションが壊れた時に備えて途中で用意したp3-sda-dumpを必ず保管しておいてください。
 
 ## 起動画面のイメージ
 
