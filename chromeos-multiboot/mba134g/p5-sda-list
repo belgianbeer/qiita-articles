@@ -1,0 +1,24 @@
+Disk /dev/sda: 233.76 GiB, 251000193024 bytes, 490234752 sectors
+Disk model: APPLE SSD SM256C
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: gpt
+Disk identifier: 92520E9C-11EF-6B46-9E22-56D37B48968E
+
+Device        Start       End   Sectors   Size Type
+/dev/sda1  14929936  48484351  33554416    16G Linux filesystem
+/dev/sda2  14798864  14929935    131072    64M ChromeOS kernel
+/dev/sda3   8687632  14798863   6111232   2.9G ChromeOS root fs
+/dev/sda4   8556560   8687631    131072    64M ChromeOS kernel
+/dev/sda5   2445328   8556559   6111232   2.9G ChromeOS root fs
+/dev/sda6     16464     16464         1   512B ChromeOS kernel
+/dev/sda7     16465     16465         1   512B ChromeOS root fs
+/dev/sda8     86032   2183183   2097152     1G Linux filesystem
+/dev/sda9     16466     16466         1   512B ChromeOS reserved
+/dev/sda10    16467     16467         1   512B ChromeOS reserved
+/dev/sda11       80     16463     16384     8M unknown
+/dev/sda12 48484352  48893951    409600   200M EFI System
+/dev/sda28 48893952 490234718 441340767 210.4G Apple APFS
+
+Partition table entries are not in disk order.
