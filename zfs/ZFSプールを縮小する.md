@@ -9,7 +9,7 @@ ZFSのミラー構成の容量を大きいものに交換する手順は以前�
 
 ## ZFSでのプールの縮小
 
-ZFSプールを扱うzpoolコマンドにはaddとremoveというサブコマンドがあります。`zpool add`は指定したデバイスを結合してプールサイズを拡張し、`zpool remove`はプールから指定したデバイスを取り除くコマンドです。これらを使うことでプールのサイズを縮小できます(もちろんプールの使用量より小さくは出来ません)。
+ZFSプールを扱うzpoolコマンドにはaddとremoveというサブコマンドがあります。`zpool add`は指定したデバイスを結合してプールサイズを拡張し、`zpool remove`はプールから指定したデバイスを取り除くコマンドです。これらを使うことでプールのサイズを縮小できます(もちろんプールの使用量より小さくは出来ません)。ただしここで例にするようなパーティションの縮小に`zpool remove`が使えるようになったのは、FreeBSD 13.0-RELEASE以降になります。
 
 例えば500GBのプールサイズの使用量が200GB程度なので250GBのプールサイズに縮小したい場合、次の手順で行います。
 
@@ -27,7 +27,7 @@ ZFSプールの縮小方法を理解したところで、実際にルートフ�
 
 ### ZFSミラールートの構成
 
-次のzrootはFreeBSDのインストーラでRoot-on-ZFSでインストールしたシステムディスクをさらにミラーで構成したものです。ここではda0、da1とも250GBのHDDを使っています。
+次のzrootはFreeBSDのインストーラでRoot-on-ZFSでインストールしたシステムディスクをさらにミラーで構成したものです。ここでda0は250GB、da1は320GBのUSB HDDを使っています。
 
 ```Console
 $ zpool list
@@ -86,7 +86,7 @@ $
 
 ### 小さいパーティションの準備
 
-da1p4がOSから外されてフリーの状態になったので、`gpart resize`を使って小さいパーティションを用意します。ここでは100GBにします。
+da1p4がプールから外れてフリーの状態になったので、`gpart resize`を使って小さいパーティションを用意します。ここでは100GBにします。
 
 ```Console
 $ gpart resize -i 4 -s 100g da1
@@ -99,7 +99,8 @@ $ gpart show da1
      533544        984       - free -  (492K)
      534528    4194304    3  freebsd-swap  (2.0G)
     4728832  209715200    4  freebsd-zfs  (100G)
-  214444032  273953096       - free -  (131G)
+  214444032  410698383       - free -  (196G)
+
 $
 ```
 
@@ -229,15 +230,210 @@ $
 
 ## Linuxでのミラープールサイズの縮小
 
-同じ作業をLinuxの一つであるDebianでもやってみます。今回の例で使ったPCはFreeBSDとDebianのマルチブートになっていて、DebianにもZFS環境を用意してあってルートファイルシステムもZFSになっています。ただ対象とするZFSプールはシステムディスクでは無く、FreeBSDで作業したHDDをそのまま使います。
+いつもなら「LinuxのZFSでも同様に操作できます」と書くところですが、今回は同じ作業をDebianでもやってみます。作業に使ったPCはFreeBSDとDebianをマルチブートでインストールしてあり、Debianも[OpenZFS](https://zfsonlinux.org/)を使って[ルートファイルシステムを含めてZFS](https://openzfs.github.io/openzfs-docs/Getting%20Started/Debian/index.html#root-on-zfs)になっています[^multi]。
+
+対象とするZFSプールはシステムディスクでは無くFreeBSDで作業したUSB HDDをそのまま使い、FreeBSDでの作業で100GBになったパーティションをさらに縮小して50GBに変更します。
+
+[^multiboot]:FreeBSDもDebianも内蔵SSDのそれぞれのパーティションにインストールしてあります。FreeBSDの例では内蔵のSSDを無効にして、USB接続のHDDをシステムディスクに設定して作業を行いました。
 
 ### LinuxでのZFSプールのインポート
 
+```Console
+$ zpool import
+   pool: zroot
+     id: 2061217757516156705
+  state: ONLINE
+ action: The pool can be imported using its name or numeric identifier.
+ config:
+
+        zroot         ONLINE
+          indirect-0  ONLINE
+          mirror-1    ONLINE
+            sdc       ONLINE
+            sdb       ONLINE
+
+   pool: zroot
+     id: 10163499461212717814
+  state: ONLINE
+ action: The pool can be imported using its name or numeric identifier.
+ config:
+
+        zroot       ONLINE
+          sda       ONLINE
+$
+```
+
+この通り同じzrootの名前で2つのプールが確認できまが、最初のプールがミラー構成で、次のプールはシングルデバイスからなるプールです。もちろん最初のプールがUSB HDDで構成されたプールであり、2番目の方は本PCのFreeBSDのルートファイルシステムがあるプールです。
+
+それでは実際にプールをインポートしてみます。インポートするにはプール名を指定する必要がありますが、同じ名前のプールが複数ある場合プール名では区別ができません。そのような場合はプール名では無くidを指定すればよく、この場合は「2061217757516156705」を指定します。
+
+もう一つの注意点は、これからインポートしようしているプールはFreeBSDのルートファイルシステムがあるプールであるということです。つまり /, /usr等Debianのファイルシステムと多くが同じディレクトリ構成なので、**単純にインポートするとDebianのシステムに重ねてマウントされる可能性があり、最悪インポートと同時にトラブルを引き起こすことになりかねません**。このようなトラブルを防ぐために`zpool inport`のオプションに`-R /mnt`を指定してFreeBSDのファイルシステムが/mnt下に配置されるようにします。
+
+それではインポートしてみます。
+
+```Console
+$ zpool import -R /mnt 2061217757516156705
+cannot import 'zroot': pool was previously in use from another system.
+Last accessed by zfstest.iot.plathome.co.jp (hostid=0) at Mon Jan 27 17:25:57 2025
+The pool can be imported, use 'zpool import -f' to import the pool.
+$
+```
+
+ZFSプールではインポート済の情報を記録しているため、エクスポートしていないプールを別システムでそのままインポートしようとするとエラーメッセージが表示されてインポートに失敗します。ここではFreeBSDで使っていたプールをそのままインポートしようとしたので、このようにエラーとなったわけです。
+
+今回はインポートしても問題無いので、強制的にインポートする`-f`オプションを指定します。
+
+```Console
+$ zpool import -f -R /mnt 2061217757516156705
+$ zpool list
+NAME    SIZE  ALLOC   FREE  CKPOINT  EXPANDSZ   FRAG    CAP  DEDUP    HEALTH  ALTROOT
+bpool   480M   101M   379M        -      232G     9%    21%  1.00x    ONLINE  -
+rpool    29G  1.28G  27.7G        -      203G    10%     4%  1.00x    ONLINE  -
+zroot  99.5G   698M  98.8G        -      132G     0%     0%  1.00x    ONLINE  /mnt
+$ zpool list -v zroot
+NAME           SIZE  ALLOC   FREE  CKPOINT  EXPANDSZ   FRAG    CAP  DEDUP    HEALTH  ALTROOT
+zroot         99.5G   698M  98.8G        -      132G     0%     0%  1.00x    ONLINE  /mnt
+  indirect-0      -      -      -        -         -      -      -      -    ONLINE
+  mirror-1    99.5G   698M  98.8G        -      132G     0%  0.68%      -    ONLINE
+    sdc        100G      -      -        -      198G      -      -      -    ONLINE
+    sdb        100G      -      -        -      132G      -      -      -    ONLINE
+$
+```
+
+この通りzrootがインポートできました[^deb]。sdbが250GB、sdcが320GBのUSB HDDです[^size]。
+
+[^deb]:他のプールはbpoolがDebianのブート用のプール、rpoolがルートからのファイルシステム用プールとなります。
+[^size]:LinuxのZFSでは`zpool list`ではEXPANDSZで残りのドライブのフリー領域を含んだ分が表示されるようです。
+
 ### LinuxでのZFSミラーの解除
+
+FreeBSDの時と同様にまずは、sdc(320GB)をプールから外してミラーを解除します
+
+```Console
+$ zpool detach zroot /dev/sdc4
+$ zpool list -v zroot
+NAME           SIZE  ALLOC   FREE  CKPOINT  EXPANDSZ   FRAG    CAP  DEDUP    HEALTH  ALTROOT
+zroot         99.5G   698M  98.8G        -      132G     0%     0%  1.00x    ONLINE  /mnt
+  indirect-0      -      -      -        -         -      -      -      -    ONLINE
+  sdb          100G   698M  98.8G        -      132G     0%  0.68%      -    ONLINE
+$
+```
+
+zpoolで見えているのはsdcでしたが、単純にsdcを指定してもエラーになったので、実際に使われている`/dev/sdc4`を指定したところ正しくdetachできました。
 
 ### Linuxでの小さいパーティションの準備
 
+sdcがOSから外されてフリーの状態になったので、fdiskコマンドで4番目のパーティションサイズを50GBに縮小します。Linuxのfdiskにはパーティションサイズを縮小するコマンドは無いため、一旦パーティションを削除してあらためて50GBのパーティションを作成しています。
+
+
+```Console
+$ fdisk /dev/sdc
+
+Welcome to fdisk (util-linux 2.38.1).
+Changes will remain in memory only, until you decide to write them.
+Be careful before using the write command.
+
+The device contains 'zfs_member' signature and it will be removed by a write command. See fdisk(8) man page and --wipe option for more details.
+
+Command (m for help): p
+
+Disk /dev/sdc: 298.09 GiB, 320072933376 bytes, 625142448 sectors
+Disk model:
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 4096 bytes
+I/O size (minimum/optimal): 4096 bytes / 4096 bytes
+Disklabel type: gpt
+Disk identifier: 9F3BCC31-DC6D-11EF-A628-0025908D635C
+
+Device       Start       End   Sectors  Size Type
+/dev/sdc1       40    532519    532480  260M EFI System
+/dev/sdc2   532520    533543      1024  512K FreeBSD boot
+/dev/sdc3   534528   4728831   4194304    2G FreeBSD swap
+/dev/sdc4  4728832 214444031 209715200  100G FreeBSD ZFS
+
+Command (m for help): d
+Partition number (1-4, default 4): 4
+
+Partition 4 has been deleted.
+
+Command (m for help): n
+Partition number (4-128, default 4):
+First sector (4728832-625142414, default 4728832):
+Last sector, +/-sectors or +/-size{K,M,G,T,P} (4728832-625142414, default 625141759): +50G
+
+Created a new partition 4 of type 'Linux filesystem' and of size 50 GiB.
+
+Command (m for help): p
+Disk /dev/sdc: 298.09 GiB, 320072933376 bytes, 625142448 sectors
+Disk model:
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 4096 bytes
+I/O size (minimum/optimal): 4096 bytes / 4096 bytes
+Disklabel type: gpt
+Disk identifier: 9F3BCC31-DC6D-11EF-A628-0025908D635C
+
+Device       Start       End   Sectors  Size Type
+/dev/sdc1       40    532519    532480  260M EFI System
+/dev/sdc2   532520    533543      1024  512K FreeBSD boot
+/dev/sdc3   534528   4728831   4194304    2G FreeBSD swap
+/dev/sdc4  4728832 109586431 104857600   50G Linux filesystem
+
+Command (m for help): w
+The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Syncing disks.
+
+$ 
+```
+
+この通りsdc4に50GBのパーティションを作成できました。
+
 ### Linuxでのプールの一時的拡張
+
+既存のzrootにsdc4の50GBを加えて、一旦150GBのプールとします。
+
+```Console
+$ zpool add zroot /dev/sdc4
+$ zpool list -v zroot
+NAME           SIZE  ALLOC   FREE  CKPOINT  EXPANDSZ   FRAG    CAP  DEDUP    HEALTH  ALTROOT
+zroot          149G   699M   148G        -      132G     0%     0%  1.00x    ONLINE  /mnt
+  indirect-0      -      -      -        -         -      -      -      -    ONLINE
+  sdb          100G   698M  98.8G        -      132G     0%  0.68%      -    ONLINE
+  sdc4          50G    64K
+$ 
+```
+### 元の100GBのデバイスの削除
+
+次にプールからsdbを取り除きます。
+
+```Console
+$ zpool remove zroot /dev/sdb4
+$ zpool list -v zroot
+NAME           SIZE  ALLOC   FREE  CKPOINT  EXPANDSZ   FRAG    CAP  DEDUP    HEALTH  ALTROOT
+zroot         49.5G   698M  48.8G        -         -     0%     1%  1.00x    ONLINE  /mnt
+  indirect-0      -      -      -        -         -      -      -      -    ONLINE
+  indirect-1      -      -      -        -      132G      -      -      -    ONLINE
+  sdc4          50G   698M  48.8G        -         -     0%  1.37%      -    ONLINE
+```
+
+sdbを取り除いたことにより、indirect-1のエントリーが残りました。
+
+次にsdb4のサイズをfdiskで50GBに縮小しますが、手順はsdcと同じなので省略します。
+
 
 ### Linuxでのミラー構成の復元
 
+最後にzrootにsdb4を組み込んでZFSミラープールを構成します。
+
+```Console
+$ zpool attach zroot sdc4 sdb4
+$ zpool list -v zroot
+NAME           SIZE  ALLOC   FREE  CKPOINT  EXPANDSZ   FRAG    CAP  DEDUP    HEALTH  ALTROOT
+zroot         49.5G   698M  48.8G        -         -     0%     1%  1.00x    ONLINE  /mnt
+  indirect-0      -      -      -        -         -      -      -      -    ONLINE
+  indirect-1      -      -      -        -      132G      -      -      -    ONLINE
+  mirror-3    49.5G   698M  48.8G        -         -     0%  1.37%      -    ONLINE
+    sdc4        50G      -      -        -         -      -      -      -    ONLINE
+    sdb4        50G      -      -        -         -      -      -      -    ONLINE
+$
+```
