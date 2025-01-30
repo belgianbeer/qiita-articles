@@ -18,7 +18,7 @@
 
 実際に交換作業をおこなう前に、現在の状態を確認します。`zpool list`でハードディスクの使用量などを確認すると次の通りでした。
 
-```
+```console
 $ zpool list
 NAME    SIZE  ALLOC   FREE  CKPOINT  EXPANDSZ   FRAG    CAP  DEDUP  HEALTH  ALTROOT
 zroot   228G  16.8G   211G        -         -    12%     7%  1.00x  ONLINE  -
@@ -30,7 +30,7 @@ zrootがシステム用のSSDです。そしてzvol0が今回の交換対象の�
 
 構成の詳細は、`zpool list -v`や`zpool status`で確認できます。
 
-```
+```console
 $ zpool list -v zvol0
 NAME             SIZE  ALLOC   FREE  CKPOINT  EXPANDSZ   FRAG    CAP  DEDUP    HEALTH  
 zvol0           1.81T  1.49T   333G        -         -     5%    82%  1.00x    ONLINE  -
@@ -40,7 +40,7 @@ zvol0           1.81T  1.49T   333G        -         -     5%    82%  1.00x    O
 $
 ```
 
-```
+```console
 $ zpool status zvol0
   pool: zvol0
  state: ONLINE
@@ -59,7 +59,7 @@ $
 
 これらからndisk1とndisk2のディスクパーティションでミラーを構成してあることが分かります。実際3台のストレージデバイスはada0(SSD)、ada1(ハードディスク)、ada2(ハードディスク)という構成で、ハードディスクのパーティションは次のようになっています。
 
-```
+```console
 $ gpart show ada1 ada2
 =>        40  3907029088  ada1  GPT  (1.8T)
           40  3907029088     1  freebsd-zfs  (1.8T)
@@ -76,6 +76,7 @@ $ gpart show -l ada1 ada2
 
 $
 ```
+
 ada1、ada2ともGPTで、ada1のZFS用パーティションにndisk1、ada2ではndisk2と名前をつけてあるのがわかります。
 
 ## ミラー構成でのハードディスク交換手順
@@ -103,7 +104,7 @@ ZFSのミラーでドライブを交換する場合に注意することは、�
 
 起動後にzvol0の状態を確認します。
 
-```
+```console
 $ zpool list
 NAME    SIZE  ALLOC   FREE  CKPOINT  EXPANDSZ   FRAG    CAP  DEDUP    HEALTH  ALTROOT
 zroot   228G  16.8G   211G        -         -    12%     7%  1.00x    ONLINE  -
@@ -111,7 +112,7 @@ zvol0  1.81T  1.49T   333G        -         -     5%    82%  1.00x  DEGRADED  -
 $
 ```
 
-```
+```console
 $ zpool status zvol0
   pool: zvol0
  state: DEGRADED
@@ -129,7 +130,9 @@ config:
             gpt/ndisk1            ONLINE       0     0     0
 
 errors: No known data errors
+$
 ```
+
 2台のハードディスクでミラーを構成しているはずが片側のgpt/ndisk2が無く1台だけになっているため、HEALTHやSTATEでDEGRADEDと表示されています。また`zpool status`では構成を示すconfig:のところでgpt/ndisk2が無く替わりに「12897545936258916783」というIDが表示されていて、行末に「was /dev/gpt/ndisk2」とあります。このIDは後ほど使用します。
 
 ### 交換用パーティションの作成
@@ -137,7 +140,8 @@ errors: No known data errors
 交換用のハードディスクの準備としては、GPTで初期化してZFS用のパーティションを用意します。
 
 まず、GPTでハードディスクを初期化します。
-```
+
+```console
 $ gpart show ada1
 gpart: No such geom: ada1.
 $ gpart create -s gpt ada1
@@ -151,7 +155,7 @@ $
 
 続いてZFS用のパーティションを割り当てます。新しいパーティションには古いものと区別するためsdisk1と名前をつけました。
 
-```
+```console
 $ gpart add -t freebsd-zfs -a 4k -l sdisk1 ada1
 ada1p1 added
 $ gpart show ada1
@@ -171,7 +175,7 @@ $
 
 通常であれば`zpool replace`の元になるデバイスにはプールを構成しているデバイスを指定するのですが、今回の場合は交換のためすでに取り外しているので該当デバイスは存在しません。このような場合は`zpool status zvol0`で表示されているIDを指定します。
 
-```
+```console
 $ zpool replace zvol0 12897545936258916783 gpt/sdisk1
 $
 ```
@@ -179,7 +183,8 @@ $
 これでsdisk1に対してndisk1からのミラーの同期が始まります。
 
 同期はバックグラウンドで行われて、前述したようにこの間通常通りサーバーを利用できます。データ量は1.5TB程度あるため同期にはそれなりの時間がかかるわけですが、その間状態がわからないと少しばかり不安になります。ZFSでは同期の進行状況を`zpool status`で確認できるので終了時間などの目安を得られます。
-```
+
+```console
 $ zpool status zvol0
   pool: zvol0
  state: DEGRADED
@@ -202,12 +207,14 @@ config:
 errors: No known data errors
 $
 ```
+
 status:で`One or more devices is currently being resilvered`とresilver[^resilver]中(同期中)であることを示しています。action:にはresilverが終わるのを待つように指示が表示されています。そしてscan:では処理量や予想時間が表示されるのですが`no estimated completion time`と表示しているように、同期開始直後は予想時間が不明なため表示されません。
 
 [^resilver]: 「resilver」という言葉はZFSを使うようになって知ったのですが、本来は銀の装飾品を磨くという意味でZFSではRAIDの復旧中であることを示しています。
 
 少し経つと終了予想時間が表示されるようになりますが、経験的にこの段階ではまったくあてになりません。
-```
+
+```console
 $ zpool status zvol0
 ===== <省略> =====
   scan: resilver in progress since Sat Jan 28 14:25:44 2023
@@ -219,7 +226,7 @@ $
 
 さらに時間を置いてから確認すると終了までに14時間程度と表示していました。
 
-```
+```console
 $ zpool status zvol0
 ===== <省略> =====
   scan: resilver in progress since Sat Jan 28 14:25:44 2023
@@ -231,7 +238,7 @@ $
 
 1時間後に確認したときは6時間程度まで減っていましたが、結局1台目のミラーの同期には15時間半程かかりました。以下は1台目の同期が完了したときに`zpool list`と`zpool status`を確認した結果です。
 
-```
+```console
 $ zpool list -v zvol0
 NAME             SIZE  ALLOC   FREE  CKPOINT  EXPANDSZ   FRAG    CAP  DEDUP    HEALTH  ALTROOT
 zvol0           1.81T  1.49T   333G        -         -     5%    82%  1.00x    ONLINE  -
@@ -240,7 +247,8 @@ zvol0           1.81T  1.49T   333G        -         -     5%    82%  1.00x    O
     gpt/ndisk1      -      -      -        -         -      -      -      -    ONLINE
 $
 ```
-```
+
+```console
 $ zpool status zvol0
   pool: zvol0
  state: ONLINE
@@ -256,13 +264,15 @@ config:
 errors: No known data errors
 $
 ```
+
 HEALTHならびにSTATEはすべてONLINEで、エラーは0と発生しておらず、1台目の同期は問題なく完了したことがわかります。
 ### 2台目のハードディスクの同期
 
 2台目のハードディスクの交換と同期の手順は1台目とまったく同じなので、コマンドの実行と結果のみに留めます。
 
 2台目を交換して起動したところ。
-```
+
+```console
 $ zpool status zvol0
   pool: zvol0
  state: DEGRADED
@@ -285,7 +295,7 @@ $
 
 ミラー用パーティションの準備
 
-```
+```console
 # gpart create -s gpt ada2
 ada2 created
 # gpart show ada2
@@ -306,7 +316,8 @@ ada2p1 added
 ```
 
 2台目の同期開始
-```
+
+```console
 $ zpool replace zvol0 13953654332474917058 gpt/sdisk2
 $ zpool status zvol0
   pool: zvol0
@@ -329,8 +340,10 @@ config:
 
 errors: No known data errors
 ```
+
 2台目の同期は14時間程でした。
-```
+
+```console
 $ zpool status zvol0
   pool: zvol0
  state: ONLINE
@@ -353,7 +366,7 @@ $
 
 あらためてzvol0の容量を確認するとSIZEは1.81Tと、交換前と同じ数字を示しています。しかしよく見るとEXPANSZに3.62Tと表示されていて、あと3.62TB拡張できることもわかります。
 
-```
+```console
 $ zpool list zvol0
 NAME    SIZE  ALLOC   FREE  CKPOINT  EXPANDSZ   FRAG    CAP  DEDUP    HEALTH  ALTROOT
 zvol0  1.81T  1.49T   333G        -     3.62T     5%    82%  1.00x    ONLINE  -
@@ -371,16 +384,17 @@ $
 
 autoexpandをonにしてみます。
 
-
-```
+```console
 $ zpool set autoexpand=on zvol0
 $ zpool get autoexpand zvol0
 NAME   PROPERTY    VALUE   SOURCE
 zvol0  autoexpand  on      local
 $
 ```
+
 しかしautoexpandをonにしただけでは容量は変わりません。
-```
+
+```console
 $ zpool list zvol0
 NAME    SIZE  ALLOC   FREE  CKPOINT  EXPANDSZ   FRAG    CAP  DEDUP    HEALTH  ALTROOT
 zvol0  1.81T  1.49T   333G        -     3.62T     5%    82%  1.00x    ONLINE  -
@@ -389,18 +403,19 @@ $
 
 容量を拡張するためには、`autoexpand=on`を設定したうえで、`zpool online -e`を実行する必要があります。
 
-```
+```console
 $ zpool online -e zvol0
 missing device name
 usage:
         online [-e] <pool> <device> ...
 $
 ```
+
 デバイス名の指定を忘れてエラーになりました😅が、本来の`zpool online`であればデバイス名の指定が必須なのは当然として、`-e`オプションのときはデバイス名の指定は無くてもよさそうな気がします。それはともかく`zpool online -e`ではプール内のデバイス名のどれか1つを指定すれば問題ありません。
 
 あらためてデバイス名を指定して実行すると、次のように容量が5.45TB[^size]まで増えました。
 
-```
+```console
 $ zpool online -e zvol0 gpt/sdisk1
 $ zpool list zvol0
 NAME    SIZE  ALLOC   FREE  CKPOINT  EXPANDSZ   FRAG    CAP  DEDUP    HEALTH  ALTROOT
@@ -412,7 +427,7 @@ $
 
 [^size]: ハードディスクでのTBは10進数での容量表記なので6TBは6,000,000,000,000バイト、2進数での1TBは1,099,511,627,776なので5.45TBとなります。
 
-**2023-07-16 追記**：`zpool online -e`で拡張する場合は autoexpandプロパティの設定は必要ないという指摘をいただきました。autoexpandプロパティは自動的に容量を拡張するための設定ということになります。
+**2023-07-16 追記**：`zpool online -e`で拡張する場合は autoexpandプロパティの設定は必要ないという指摘をいただきました。autoexpandプロパティは自動的に容量を拡張するための設定でした。
 
 ## 交換完了後
 
