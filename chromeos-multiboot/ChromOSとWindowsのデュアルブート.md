@@ -82,14 +82,14 @@ PC側のストレージ構成によってはこの表とは違う割り当てに
 
 `sudo -i`でrootユーザーになります。
 
-```command
+```console
 user@debian:~$ sudo -i
 root@debian:~# 
 ```
 
 設定途中でmkdosfsコマンドを使うため、aptを使ってdosfstoolsをインストールします。
 
-```command
+```console
 root@debian:~# apt update
 .....(省略).....
 root@debian:~# apt install dosfstools
@@ -99,7 +99,7 @@ root@debian:~#
 
 必須ではないですが、openssh-serverのパッケージをインストールすると別のPCからsshでログインできるようになります。`ip addr show`でIPアドレスを確認しsshで対象のPCにログインすれば、テキストのコピーやペーストができるようになって作業効率があがります。それに**Debian Liveでは英語キーボードの配列になる**ため、普段日本語キーボードしか利用していない人にとっては一部の記号の入力が困難になります。その場合もsshを利用して使い慣れているキーボードの機器からログインしたほうが作業がやりやすくなります。なおsshでログインするときのユーザー名は「user」、パスワードは「live」です。
 
-```command
+```console
 root@debian:~# apt install openssh-server
 .....(省略).....
 root@debian:~# ip addr show
@@ -109,7 +109,7 @@ root@debian:~#
 
 記録用のUSBメモリを/mntにマウントして、そこにcdします。これでUSBメモリにコマンドの出力結果などを残せるようになります。
 
-```command
+```console
 root@debian:~# mount /dev/sdc1 /mnt
 root@debian:~# cd /mnt
 root@debian:/mnt# 
@@ -119,7 +119,7 @@ root@debian:/mnt#
 
 最初に`sfdisk --list`を使ってChromeOS Flexのパーティションテーブルを確認するとともに、あとで変更内容を比較するためにp1-sda-listというファイルに結果を保存しています。なお本記事で使っているPCの内蔵ストレージは120GBのSSDです。
 
-```command
+```console
 root@debian:/mnt# sfdisk --list /dev/sda | tee p1-sda-list
 Disk /dev/sda: 111.79 GiB, 120034123776 bytes, 234441648 sectors
 Disk model: INTEL SSDSC2BW12
@@ -155,7 +155,7 @@ root@debian:/mnt#
 
 パーティションのインデックスと物理的順番が一致していないことが、この後WindowsやmacOSをインストールしたときにChromeOS Flexのパーティションテーブルが壊れる原因です。この後パーティションテーブルを編集するため、ChromeOS Flexインストール直後のパーティションテーブルを保存します。次の例は`sfdisk --dump`でパーティションテーブルを`p1-sda-dump`というファイルに保存しています。
 
-```command
+```console
 root@debian:/mnt# sfdisk --dump /dev/sda | tee p1-sda-dump
 label: gpt
 label-id: 375C8B32-FD8D-464E-91A6-FB83A244B8C4
@@ -186,7 +186,7 @@ root@debian:/mnt#
 
 次のリストは最初に確認した`sfdisk --list /dev/sda`のパーティションテーブルをスタートセクタの小さい順つまり物理的順番に並び変え、説明のためパーティションの順番をIDとして追加してあります。
 
-```command
+```text
 ID : Device        Start       End   Sectors   Size Type
  1 : /dev/sda11       64        64         1   512B unknown
  2 : /dev/sda6        65        65         1   512B ChromeOS kernel
@@ -222,7 +222,7 @@ ID : Device        Start       End   Sectors   Size Type
 
 まず、先ほど保存したp1-sda-dumpを別のファイルにコピーします。そしてFAT用パーティションを作るためにUUIDを1個用意します(本記事からコピペできないようUUIDの一部をマスクしています)。
 
-```command
+```console
 root@debian:/mnt# cp p1-sda-dump p2-sda-dump
 root@debian:/mnt# uuidgen
 91b804e1-8930-48ee-817d-c42exx9b95b1
@@ -231,7 +231,7 @@ root@debian:/mnt#
 
 次にテキストエディタを使って、コピーしたp2-sda-dumpを編集します。元のp1-sda-dumpと編集後のp2-sda-dumpの差分は次のようになります。
 
-```
+```console
 root@debian:/mnt# vi p2-sda-dump
 .....(省略).....
 root@debian:/mnt# diff -U0 p1-sda-dump p2-sda-dump
@@ -253,13 +253,13 @@ sda1の変更は単純にパーティションサイズを小さくするだけ�
 
 p2-sda-dumpの変更点を確認できたら、sfdiskコマンドを使ってストレージに書き込みます。
 
-```command
+```console
 root@debian:/mnt# sfdisk /dev/sda < p2-sda-dump
 ```
 
 変更後のパーティションテーブルは次のようになります。
 
-```command
+```console
 root@debian:/mnt# sfdisk --list /dev/sda | tee p2-sda-list
 Disk /dev/sda: 111.79 GiB, 120034123776 bytes, 234441648 sectors
 Disk model: INTEL SSDSC2BW12
@@ -290,7 +290,7 @@ root@debian:/mnt#
 
 次にsda1とsda13にファイルシステムを作成します。sda1はEXT4ですからmkfs.ext4コマンドを使います。
 
-```command
+```console
 root@debian:/mnt# mkfs.ext4 -L H-STAGE /dev/sda1
 mke2fs 1.47.0 (5-Feb-2023)
 /dev/sda1 contains a ext4 file system labelled 'H-STATE'
@@ -313,7 +313,7 @@ root@debian:/mnt#
 
 sda13はESP用ですからFAT32で作成します。
 
-```command
+```console
 root@debian:/mnt# mkdosfs -F 32 -n EFI-SYSTEM /dev/sda13
 mkfs.fat 4.2 (2021-01-31)
 root@debian:/mnt# 
@@ -323,7 +323,7 @@ root@debian:/mnt#
 
 新しいESPの準備ができたので、sda12の内容をsda13にコピーします。ここでは双方のパーティションをマウントしてからtarを使ってコピーしていますが、cp -rなど他の方法でもかまいません。コピーが完了したら、sda12とsda13をアンマウントします。
 
-```command
+```console
 root@debian:/mnt# mkdir /mnt/efi /mnt/dos
 root@debian:/mnt# mount /dev/sda12 /mnt/efi
 root@debian:/mnt# mount /dev/sda13 /mnt/dos
@@ -339,14 +339,14 @@ root@debian:/mnt# umount /mnt/efi
 
 物理的な順番としてsda1の次にsda13として新たなESPが用意できたので、既存のsda12を削除してsda13の領域をsda12のESPに変更します。編集内容は、sda12のスタートとサイズにsda13に設定したものをコピーして、sda13の行を削除します。今度はp2-sda.dumpをp3-sda-dumpにコピーして、p3-sda-dumpを編集します。
 
-```command
+```console
 root@debian:/mnt# cp p2-sda-dump p3-sda-dump
 root@debian:/mnt# vi p3-sda-dump
 ```
 
 編集後の変更内容は次のようになります。
 
-```command
+```console
 root@debian:/mnt# diff -U0 p2-sda-dump p3-sda-dump
 --- p2-sda-dump 2024-05-31 05:04:58.000000000 +0000
 +++ p3-sda-dump 2024-05-31 05:26:10.000000000 +0000
@@ -359,7 +359,7 @@ root@debian:/mnt#
 
 正しく変更できているのを確認したら、再びsfdiskコマンドでパーティションテーブルを書き換えます。
 
-```command
+```console
 root@debian:/mnt# sfdisk /dev/sda < p3-sda-dump
 .....(省略).....
 root@debian:/mnt#
@@ -367,7 +367,7 @@ root@debian:/mnt#
 
 変更後のパーティションテーブルは次のようになります。
 
-```command
+```console
 root@debian:/mnt# sfdisk --list /dev/sda | tee p3-sda-list
 Disk /dev/sda: 111.79 GiB, 120034123776 bytes, 234441648 sectors
 Disk model: INTEL SSDSC2BW12
@@ -400,7 +400,7 @@ root@debian:/mnt#
 
 最初に保存したp1-sda-listと比較すると次のようになります。
 
-```command
+```console
 root@debian:/mnt# diff -U0 --ignore-space-change p1-sda-list p3-sda-list
 --- p1-sda-list 2024-05-31 04:58:24.000000000 +0000
 +++ p3-sda-list 2024-05-31 05:33:18.000000000 +0000
@@ -437,7 +437,7 @@ Windows 10や11をインストールするには、次の3つのパーティシ�
 
 まずuuidgenを使ってパーティション用のIDを3個用意します。
 
-```
+```console
 root@debian:/mnt# uuidgen > uuids
 root@debian:/mnt# uuidgen >> uuids
 root@debian:/mnt# uuidgen >> uuids
@@ -450,7 +450,7 @@ root@debian:/mnt#
 
 次にp3-sda-dumpを元にp4-sda-dumpを作ります。
 
-```command
+```console
 root@debian:/mnt# cp p3-sda-dump p4-sda-dump
 root@debian:/mnt# vi p4-sda-dump
 ```
@@ -469,7 +469,7 @@ last-lba: 234441614
 
 なお、パーティションの名前やアトリビュートについては次の例と同じものにします(インストール済のWindowsから引用)。こうして各パーティションのstartとsizeが決まり、編集後のp4-sda-dumpの変更内容は次のようになります。
 
-```command
+```console
 root@debian:/mnt# diff -U1 p3-sda-dump p4-sda-dump
 --- p3-sda-dump 2024-05-31 05:26:10.000000000 +0000
 +++ p4-sda-dump 2024-05-31 08:31:26.000000000 +0000
@@ -483,7 +483,7 @@ root@debian:/mnt#
 
 p4-sda-dumpができたので、パーティションテーブルを更新します。
 
-```command
+```console
 root@debian:/mnt# sfdisk /dev/sda < p4-sda-dump
 --- (中略) ---
 root@debian:/mnt# sfdisk --list /dev/sda | tee p4-sda-list
@@ -518,7 +518,7 @@ root@debian:/mnt#
 
 p3-sda-listの結果と比べると次のように3つのパーティションが増えていることがわかります。
 
-```command
+```console
 root@debian:/mnt# diff -U0 --ignore-space-change p3-sda-list p4-sda-list
 --- p3-sda-list 2024-05-31 05:33:18.000000000 +0000
 +++ p4-sda-list 2024-05-31 08:33:12.000000000 +0000
@@ -531,7 +531,7 @@ root@debian:/mnt#
 
 ここまでの作業が終了したら、Debian Liveをシャットダウンします。
 
-```command
+```console
 root@debian:/mnt# poweroff
 ```
 
@@ -549,7 +549,7 @@ MacにmacOSをインストールする場合、インストール時にディス
 
 サイズはディスクユーティリティでフォーマットする際に利用可能な最大サイズに広げられるため空き容量をギリギリまで割り当てる必要は無く、適当な値(例えば50GB)を割り当てれば問題ありません。nameは`"Customer"`とします。
 
-```command
+```console
 root@debian:/mnt# uuidgen
 cea1b7c3-961a-439b-83c4-42d4xxf092e3
 root@debian:/mnt# cp p3-sda-dump p4-sda-dump
@@ -558,7 +558,7 @@ root@debian:/mnt# vi p4-sda-dump
 
 p4-sda-dumpにはsda13の行を追加します。p3-sda-dumpからの変更点は次のようになります。
 
-```command
+```console
 root@debian:/mnt# diff -U1 p3-sda-dump p4-sda-dump
 --- p3-sda-dump 2024-06-03 20:13:03.000000000 +0900
 +++ p4-sda-dump 2024-06-04 06:07:02.000000000 +0900
@@ -570,7 +570,7 @@ root@debian:/mnt#
 
 p4-sda-dumpの修正が確認できたら、パーティションテーブルを更新します。
 
-```command
+```console
 root@debian:/mnt# sfdisk /dev/sda < p4-sda-dump
 --- (中略) ---
 root@debian:/mnt# sfdisk --list /dev/sda | tee p4-sda-list
@@ -603,7 +603,7 @@ root@debian:/mnt#
 
 これでmacOSをインストールする準備ができたのでシャットダウンしてmacOSをインストールします。Debian LiveのUSBメモリとパーティションテーブルのメモをとった記録用のUSBメモリは後の作業で使用するのでそのまま保管してください。
 
-```command
+```console
 root@debian:/mnt# poweroff
 ```
 
@@ -637,7 +637,7 @@ macOSのインストーラが起動したら、ディスクユーティリティ
 
 修復もDebian Liveを使うのでDebian LiveのUSBメモリで起動し、前の作業で記録をとったUSBメモリを/mntにマウントします。なおaptコマンドを使うことはありません。
 
-```command
+```console
 user@debian:~$ sudo -i
 root@debian:~# mount /dev/sdc1 /mnt
 root@debian:~# cd /mnt
@@ -646,7 +646,7 @@ root@debian:/mnt#
 
 起動しなくなったパーティションテーブルの状況を`sfdisk --list`で確認します。
 
-```command
+```console
 root@debian:/mnt# sfdisk --list /dev/sda | tee p5-sda-list
 Disk /dev/sda: 113 GiB, 121332826112 bytes, 236978176 sectors
 Disk model: APPLE SSD TS128C
@@ -676,7 +676,7 @@ ChromeOS Flexインストール時点の1から12を見ると(p3-sda-list参照)
 
 まず`sfdisk --dump`で現状のパーティションテーブルをp5-sda-dumpに保存します。
 
-```command
+```console
 root@debian:/mnt# sfdisk --dump /dev/sda > p5-sda-dump
 ```
 
@@ -684,14 +684,14 @@ p5-sda-dumpを前に保存したp3-sda-dumpと比べると、順番は変わっ�
 
 修復するためのパーティションテーブルは、エディタを使うこともなく次のコマンドラインで作成できます。
 
-```command
+```console
 root@debian:/mnt# cp p3-sda-dump p6-sda-dump
 root@debian:/mnt# tail -n 1 p5-sda-dump >> p6-sda-dump
 ```
 
 2つめの`tail -n`のパラメータは、増えたパーティション数に合わせて1, 2, 3等を指定します。p6-sda-dumpの修正ができたら元になったp3-sda-dumpとdiffコマンドで比較して、正しく変更できたかどうかを確認します。
 
-```command
+```console
 root@debian:/mnt# diff -U1 p3-sda-dump.txt p6-sda-dump.txt
 --- p3-sda-dump 2024-06-03 20:13:03.321219000 +0900
 +++ p6-sda-dump 2024-06-04 06:32:12.000000000 +0900
@@ -703,7 +703,7 @@ root@debian:/mnt#
 
 問題なければ修正したパーティションテーブルをストレージに反映します。
 
-```command
+```console
 root@debian:/mnt# sfdisk /dev/sda < p6-sda-dump
 ```
 
@@ -733,7 +733,7 @@ Macでは起動OSを選ぶ時にControlキーを押しながらクリックす�
 
 macOSでは問題無いのですが、WindowsとChromeOS Flexを組み合わせた場合はRTC(Real Time Clock, PCが内蔵しているBIOSで確認できる時計)の時刻の扱いの違いが問題になります。ChromeOS FlexではRTCの時刻をUTCとして扱うのに対して、Windowsではローカルの時刻つまりJSTとして扱います。そのため何もしないとChromeOS Flexを使った後にWindowsを起動すると、時刻が9時間ずれてしまいます。この問題は次のレジストリを設定すると、WindowsがRTCをUTCで扱うようになって回避できます。
 
-```command
+```text
 Windows Registry Editor Version 5.00
 
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\TimeZoneInformation]
