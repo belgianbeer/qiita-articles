@@ -1,4 +1,5 @@
-<!-- 
+<!--
+https://qiita.com/belgianbeer/items/7483f17548ad217f18a0
 https://blog.naa0yama.com/p/02w17-srcjj0yk/
 -->
 # ZFSプールを縮小する
@@ -285,12 +286,12 @@ The pool can be imported, use 'zpool import -f' to import the pool.
 $
 ```
 
-ZFSプールではインポート済の情報を記録しているため、エクスポートしていないプールを別システムでそのままインポートしようとするとエラーメッセージが表示されてインポートに失敗します。ここではFreeBSDで使っていたプールをそのままインポートしようとしたので、このようにエラーとなったわけです。
+ZFSプールではインポート済の情報をデバイス内部に記録しているため、エクスポートしていないプールを別システムでそのままインポートしようとするとエラーメッセージが表示されてインポートに失敗します。ここではFreeBSDで使っていたプールをそのままインポートしようとしたので、このようにエラーとなったわけです。
 
-今回はインポートしても問題無いので、強制的にインポートする`-f`オプションを指定します。
+今回はエラーを無視してインポートしても問題無いので、`-f`オプションを指定して強制的にインポートします。またインポートしたプールをマウントする必要は無いため`-N`オプションを追加しています。
 
 ```Console
-$ zpool import -f -R /mnt 2061217757516156705
+$ zpool import -f -R /mnt -N 2061217757516156705
 $ zpool list
 NAME    SIZE  ALLOC   FREE  CKPOINT  EXPANDSZ   FRAG    CAP  DEDUP    HEALTH  ALTROOT
 bpool   480M   101M   379M        -      232G     9%    21%  1.00x    ONLINE  -
@@ -310,6 +311,48 @@ $
 
 [^deb]:他のプールはbpoolがDebianのブート用のプール、rpoolがルートからのファイルシステム用プールとなります。
 [^size]:LinuxのZFSでは`zpool list`ではEXPANDSZで残りのドライブのフリー領域を含んだ分が表示されるようです。
+
+この状態で`zfs list`実行すると、次のようにzroot配下のFreeBSDのファイルシステムが /mntディレクトリ内に一式見えます(例示のため別システムでの結果を使用)。
+
+```console
+$ zfs list
+NAME                     USED  AVAIL  REFER  MOUNTPOINT
+bpool                    101M   251M    96K  /boot
+bpool/BOOT              99.4M   251M    96K  none
+bpool/BOOT/debian       99.3M   251M  99.3M  /boot
+rpool                   1.28G  26.8G    96K  /
+rpool/ROOT              1.18G  26.8G    96K  none
+rpool/ROOT/debian       1.18G  26.8G  1.18G  /
+rpool/home              1.28M  26.8G   104K  /home
+rpool/home/minmin        952K  26.8G   856K  /home/minmin
+rpool/home/root          252K  26.8G   252K  /root
+rpool/usr                212K  26.8G    96K  /usr
+rpool/usr/local          116K  26.8G   116K  /usr/local
+rpool/var               87.0M  26.8G    96K  /var
+rpool/var/cache         50.7M  26.8G  50.7M  /var/cache
+rpool/var/lib            192K  26.8G    96K  /var/lib
+rpool/var/lib/nfs         96K  26.8G    96K  /var/lib/nfs
+rpool/var/log           35.7M  26.8G  35.7M  /var/log
+rpool/var/mail            96K  26.8G    96K  /var/mail
+rpool/var/spool          104K  26.8G   104K  /var/spool
+rpool/var/tmp            120K  26.8G   120K  /var/tmp
+zroot                    507M  5.32G    24K  /mnt/zroot
+zroot/ROOT               507M  5.32G    24K  none
+zroot/ROOT/default       507M  5.32G   507M  /mnt
+zroot/home              54.5K  5.32G    24K  /mnt/home
+zroot/home/minmin       30.5K  5.32G  30.5K  /mnt/home/minmin
+zroot/tmp                 24K  5.32G    24K  /mnt/tmp
+zroot/usr                 72K  5.32G    24K  /mnt/usr
+zroot/usr/ports           24K  5.32G    24K  /mnt/usr/ports
+zroot/usr/src             24K  5.32G    24K  /mnt/usr/src
+zroot/var                159K  5.32G    24K  /mnt/var
+zroot/var/audit           24K  5.32G    24K  /mnt/var/audit
+zroot/var/crash           24K  5.32G    24K  /mnt/var/crash
+zroot/var/log             39K  5.32G    39K  /mnt/var/log
+zroot/var/mail            24K  5.32G    24K  /mnt/var/mail
+zroot/var/tmp             24K  5.32G    24K  /mnt/var/tmp
+$
+```
 
 ### LinuxでのZFSミラーの解除
 
