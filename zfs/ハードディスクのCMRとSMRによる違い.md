@@ -10,7 +10,7 @@
 
 こちらが該当記事に掲載したSMRのハードディスクでのミラーの同期にかかった時間の記録で、14時間11分となっています。
 
-```
+```console
 $ zpool status zvol0
   pool: zvol0
  state: ONLINE
@@ -33,7 +33,7 @@ $
 
 [^big]: ZFSのRAIDの同期では書き込み済みの領域だけを同期するため、ハードディスクの総容量の違いは関係ありません。
 
-```
+```console
 $ zpool status zvol0
   pool: zvol0
  state: ONLINE

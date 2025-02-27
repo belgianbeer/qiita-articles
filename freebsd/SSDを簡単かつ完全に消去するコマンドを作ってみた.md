@@ -30,7 +30,7 @@
 
 Linuxでhdparmがシステムにインストールされていない場合、まずhdparmをインストールする必要があります。DebianやUbuntuではaptコマンドを使います。
 
-```code
+```console
 $ apt install hdparm
 ```
 
@@ -44,7 +44,7 @@ drive-secure-eraseを実行する場合、対象のドライブはFreeBSDであ�
 
 FreeBSDでの例
 
-```code
+```console
 $ drive-secure-erase da1
 ......
 *** da1 is ready for secure erase.
@@ -53,7 +53,7 @@ $
 
 Linuxでの例
 
-```code
+```console
 $ drive-secure-erase /dev/sdb
 ......
 *** /dev/sdb is ready for secure erase.
@@ -62,7 +62,7 @@ $
 
 ドライブがエンハンストセキュアイレースをサポートしている場合は、次のように表示します。
 
-```code
+```console
 $ drive-secure-erase da1
 ......
 *** da1 is ready for enhanced secure erase.
@@ -73,7 +73,7 @@ $
 
 消去できることがわかったら、引数にyesを追加して再び実行します。エンハンストセキュアイレース可能ならそれを使い、そうでない場合は通常のセキュアイレースを実行します。数秒～数十秒程度でドライブの消去が完了します。
 
-```code
+```console
 $ drive-secure-erase da1 yes
 ```
 
@@ -83,7 +83,7 @@ $ drive-secure-erase da1 yes
 
 FreeBSDでSATA⇔USB変換を使っている場合に、次のようなエラーメッセージが表示されてコマンドが終了することがありますが正常に消去されます。ただエラーで終了した時点では消去が完了していないこともあるので注意が必要です(しばらく待つ必要がある)。
 
-```code
+```console
 camcontrol: ATA SECURITY_ERASE_UNIT via pass_16 failed
 ```
 
@@ -99,7 +99,7 @@ drive-secure-eraseでは、NVMeストレージ[^nvme]とUSBメモリ[^usb]の消
 
 drive-secure-eraseで動作するかどうかを確認した際に、次のように指定ドライブがfrozenである旨が表示されることがあります。
 
-```code
+```console
 $ drive-secure-erase ada0
 ......
 *** ada0 is frozen. Secure erase not possible.
@@ -114,7 +114,7 @@ frozenは、BIOSがドライブに対してセキュアイレース等をでき�
 
 ハードディスクドライブでもdrive-secure-eraseは利用できます。しかしながらその処理にはドライブの容量と転送速度に応じた時間を必要とし、数時間から場合によっては1日以上かかることもあります。時間がかかるからといって途中で電源を切って中段しても、HDDの状態はロックされたままになり利用できなくなります。ロックされたドライブを解除するにはunlockコマンドを指定します。
 
-```code
+```console
 $ drive-secure-erase da1 unlock
 ```
 
