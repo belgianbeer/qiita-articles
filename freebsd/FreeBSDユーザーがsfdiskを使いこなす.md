@@ -62,17 +62,17 @@ Syncing disks.
 $
 ```
 
-gpartと違いsfdiskでは、**既存のパーティションテーブルが残っていても初期化**されます。またこのようにsfdiskでのデフォルトでは設定を変更する毎に状況を表示するので、シェルスクリプトで使うような場合は`-q`オプションで出力を抑止するのが良いでしょう。
+gpartと違いsfdiskでは、**既存のパーティションテーブルが残っていても初期化**されます。またこのようにsfdiskでのデフォルトでは設定を変更する毎に状況を表示するので、シェルスクリプトで使うような場合は`--quiet`(または`-q`)オプションで出力を抑止するのが良いでしょう。
 
 ```console
-$ echo "label: gpt" | sfdisk -q /dev/sdb
+$ echo "label: gpt" | sfdisk --quiet /dev/sdb
 $
 ```
 
 またsfdiskには(fdiskにも)パーティションテーブルを完全にクリアする`gpart destroy`に相当する機能はありません。Linuxで同様のことを行うにはwipefsを使います。
 
 ```console
-$ wipefs -a /dev/sdb
+$ wipefs --all /dev/sdb
 /dev/sdb: 8 bytes were erased at offset 0x00000200 (gpt): 45 46 49 20 50 41 52 54
 /dev/sdb: 8 bytes were erased at offset 0x12a1f15e00 (gpt): 45 46 49 20 50 41 52 54
 /dev/sdb: 2 bytes were erased at offset 0x000001fe (PMBR): 55 aa
@@ -80,13 +80,12 @@ $ wipefs -a /dev/sdb
 $
 ```
 
-## パーティションテーブルの確認
+## パーティションテーブルの表示
 
 gpartでパーティションテーブルを確認するにはshowコマンドを使います。
 
 ```console
 $ gpart show da0
- /sbin/gpart show da0
 =>       40  312581728  da0  GPT  (149G)
          40       2008       - free -  (1.0M)
        2048   62914560    1  freebsd-zfs  (30G)
@@ -95,10 +94,10 @@ $ gpart show da0
 $
 ```
 
-ただshowだけではパーティションラベルを見ることはできません。パーティションラベルを見るためには`-l`オプションを指定します。しかし`-l`の場合はパーティションの型は表示されません。
+ただshowだけではパーティションラベルを見ることはできず、パーティションラベルを見るためには`-l`オプションを指定します。しかし`-l`の場合はパーティションの型が表示されなくなります。
 
 ```console
-$ /sbin/gpart show -l  da0
+$ gpart show -l da0
 =>       40  312581728  da0  GPT  (149G)
          40       2008       - free -  (1.0M)
        2048   62914560    1  part11  (30G)
@@ -107,10 +106,10 @@ $ /sbin/gpart show -l  da0
 $
 ```
 
-sfdiskでパーティションテーブルを確認するには`-l`(または`--list`)オプションを指定します。
+sfdiskでパーティションテーブルを確認するには`--list`(または`-l`)オプションを指定します。
 
 ```console
-$ sfdisk -l /dev/sdb
+$ sfdisk --list /dev/sdb
 Disk /dev/sdb: 74.53 GiB, 80026361856 bytes, 156301488 sectors
 Disk model: 0G9AT00
 Units: sectors of 1 * 512 = 512 bytes
@@ -121,20 +120,22 @@ Disk identifier: 86430DEF-2B95-034E-A1CE-FD7A6988554D
 
 Device     Start      End  Sectors Size Type
 /dev/sdb1   2048 62916607 62914560  30G Linux filesystem
+$
 ```
 
-さらに`-q`オプションを追加した場合は、ヘッダー部分は表示されずパーティション情報だけとなります。
+さらに`--quiet`オプションを追加した場合は、ヘッダー部分は表示されずパーティション情報だけとなります。
 
 ```console
-$ sfdisk -l -q /dev/sdb
+$ sfdisk --list --quiet /dev/sdb
 Device     Start      End  Sectors Size Type
 /dev/sdb1   2048 62916607 62914560  30G Linux filesystem
+$
 ```
 
-またsfdiskには`-d`(または`--dump`)でより詳細なパーティションテーブルの情報を表示できます。
+またsfdiskには`--dump`(または`-d`)でより詳細なパーティションテーブルの情報を表示できます。
 
 ```console
-$ sfdisk -d /dev/sdb
+$ sfdisk --dump /dev/sdb
 label: gpt
 label-id: 86430DEF-2B95-034E-A1CE-FD7A6988554D
 device: /dev/sdb
@@ -147,11 +148,20 @@ sector-size: 512
 $
 ```
 
-`-d`はパーティションテーブルを見ることもできるわけですが、出力をファイルに保存してパーティションテーブルのバックアップする目的のオプションです。
+`--dump`はパーティションテーブルを見ることもできるわけですが、出力をファイルに保存してパーティションテーブルのバックアップするオプションです(後述)。
+
+またgpartで未使用領域を` - free - `として示しますが、sfdiskでは未使用領域は表示しません。sfdiskには未使用領域を表示するための`--list-fre`(または`-F`)が用意されていて、未使用領域だけの表示となります。
+
+```console
+$ sfdisk --list-free --quiet /dev/sdb
+   Start       End  Sectors  Size
+62916608 156301454 93384847 44.5G
+$
+```
 
 ## パーティションの追加
 
-gpartでパーティションを追加するには`gpart add`を使います。パーティションの追加は未使用領域の最初の部分に割り当てられますが、現在のドライブの物理セクタはほとんどが4096バイトであるため(論理セクタサイズは従来同様512バイト)物理セクタサイズに合わせるように必ず`-a 4k`を指定します。ここでは30Gのパーテイションを追加しています。
+gpartでパーティションを追加するには`gpart add`を使います。パーティションの追加は未使用領域の最初の部分に割り当てられますが、現在のストレージの物理セクタはほとんどが4096バイトであるため(論理セクタサイズは従来同様512バイト)物理セクタサイズに合わせるように`-a 4k`を指定します。ここでは30Gのパーテイションを追加しています。
 
 ```console
 $ gpart add -t freebsd-zfs -a 4k -s 30g -l data1 da0
@@ -164,7 +174,7 @@ $
 sfdiskでパーティションを追加する場合は、`size=`や`type=`を指定して次のようになります。
 
 ```console
-$ echo size=30G, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, name=data1 | sfdisk -a /dev/sdb
+$ echo size=30G, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, name=data1 | sfdisk --append /dev/sdb
 Checking that no-one is using this disk right now ... OK
 
 Disk /dev/sdb: 74.53 GiB, 80026361856 bytes, 156301488 sectors
@@ -178,11 +188,38 @@ Syncing disks.
 $
 ```
 
-`size=`でパーティションサイズをセクタ数またはサイズで指定し、省略した場合は残りの領域全てが割り当てられます。`type`はパーティションの型を指定しますが、ここで指定した`0FC63DAF-8483-4772-8E79-3D69D8477DE4`はLinuxの標準的なファイルシステムを示すGUIDです。`name=`はパーティションのラベル名で、`gpart add`の`-l`に相当します。
+`size=`等のパラメータはカンマで区切って指定します。
 
-`-a`(または`--append`)オプションを指定していますが、sfdiskでは **`-a`が指定されていない場合は既存パーティションテーブルの置き換えになり、複数のパーティションをすでに用意してあっても指定した1つのパーティションだけに変更されます**。ですからパーティションの追加では必ず`-a`を指定するのを忘れないようにします。
+- `size=` パーティションサイズをセクタ数またはサイズで指定する。省略した場合は残りの領域全てが割り当てられる。
+- `type=` パーティションの型を指定する。上記例で指定した`0FC63DAF-8483-4772-8E79-3D69D8477DE4`は、Linuxのファイルシステムを示すGUIDです。
+- `name=` パーティションのラベル名を設定する。
 
-ところで`type=`ではGUIDを指定する必要がありますが、この一覧は`-T`(または`--list-type`)オプションを使って``sfdisk --list-type --label gpt`で確認できます。
+他にもありますが、それらは`man sfdisk`で確認してください。
+
+`--append`(または`-a`)オプションを指定していますが、sfdiskでは **`--append`が指定されていない場合は既存パーティションテーブルの置き換えになり、複数のパーティションテーブルがあっても指定した1つのパーティションだけに変更されます**。ですからパーティションの追加では必ず`--append`を指定するのを忘れないようにします。
+
+追加では無く特定のパーティションを指定する場合、`gpart add`では`-i`でパーティションインデックスを指定しますが、`sfdisk`では`-N`で指定します。
+
+```console
+$ gpart add -t freebsd-zfs -a 4k -s 30g -l data3 -i 3 da0
+da0p3 added
+$ gpart show da0
+=>       40  312581728  da0  GPT  (149G)
+         40   62914560    3  freebsd-zfs  (30G)
+   62914600  249667168       - free -  (119G)
+
+$
+```
+
+```console
+$ echo size=30G, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, name=data3 | sfdisk -N 3 --quiet /dev/sdb
+$ sfdisk --list --quiet /dev/sdb
+Device        Start       End  Sectors Size Type
+/dev/sdb3  62916608 125831167 62914560  30G Linux filesystem
+$
+```
+
+ところで`type=`ではパーティションの型を示すGUIDを指定する必要がありますが、この一覧は`--list-type`(または`-T`)オプションを使って``sfdisk --list-type --label gpt`で確認できます。次の例のようにFreeBSD用パーティションのGUIDも一式用意されています。
 
 ```console
 $ sfdisk --list-type --label gpt | grep -i freebsd
@@ -195,13 +232,158 @@ $ sfdisk --list-type --label gpt | grep -i freebsd
 $
 ```
 
-この通りFreeBSD用のパーティションも表示できます。
-
 sfdiskでは複数のパーティションも同時に作成できます。
 
 ```console
-$ sfdisk /dev/sdb << EOT
+$ sfdisk --quiet /dev/sdb << EOT
+label: gpt
 size=30G,name=part11
-size=20G,name=fbsdzfs1,type=6A898CC3-1DD2-11B2-99A6-080020736631,name=zfs12
-$ sfdisk -q -l /dev/sdb
+size=20G,type=516E7CBA-6ECF-11D6-8FF8-00022D09712B,name=freebsdzfs
+EOT
+$ sfdisk --quiet --list /dev/sdb
+Device        Start       End  Sectors Size Type
+/dev/sdb1      2048  62916607 62914560  30G Linux filesystem
+/dev/sdb2  62916608 104859647 41943040  20G FreeBSD ZFS
+$ sfdisk --dump /dev/sdb
+label: gpt
+label-id: 90DCD5DA-40FA-6F43-B523-905BC9757FBB
+device: /dev/sdb
+unit: sectors
+first-lba: 2048
+last-lba: 156301454
+sector-size: 512
+
+/dev/sdb1 : start=        2048, size=    62914560, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=9F35EE97-5367-5847-89BC-C1BC3B02C071, name="part11"
+/dev/sdb2 : start=    62916608, size=    41943040, type=516E7CBA-6ECF-11D6-8FF8-00022D09712B, uuid=7ABE350B-CC00-3648-9C55-4934830B44A5, name="freebsdzfs"
+$
 ```
+
+入力行でパーティションインデックスを指定する場合は、行頭にデバイス名を「:」(コロン)で区切って設定します。
+
+```console
+$ sfdisk --quiet /dev/sdb << EOT
+label: gpt
+/dev/sdb1: size=30G,name=part11
+/dev/sdb3: size=20G,type=516E7CBA-6ECF-11D6-8FF8-00022D09712B,name=freebsdzfs
+EOT
+$ sfdisk --list --quiet /dev/sdb
+Device        Start       End  Sectors Size Type
+/dev/sdb1      2048  62916607 62914560  30G Linux filesystem
+/dev/sdb3  62916608 104859647 41943040  20G FreeBSD ZFS
+$
+```
+
+## パーティションの削除
+
+gpartでパーティションを削除する場合は次のように delete に続く`-i`でパーティションインデックスを指定します。
+
+```console
+$ gpart show da0
+=>       40  312581728  da0  GPT  (149G)
+         40   62914560    1  freebsd-ufs  (30G)
+   62914600   41943040    3  freebsd-zfs  (20G)
+  104857640  207724128       - free -  (99G)
+
+$ gpart delete -i 1 da0
+da0p1 deleted
+$ gpart show da0
+=>       40  312581728  da0  GPT  (149G)
+         40   62914560       - free -  (30G)
+   62914600   41943040    3  freebsd-zfs  (20G)
+  104857640  207724128       - free -  (99G)
+
+$
+```
+
+sfdiskでは`--delete`オプションで、デバイス名の後に削除するパーティションインデックスを指定します。
+
+```console
+$ sfdisk --quiet --list /dev/sdb
+Device        Start       End  Sectors Size Type
+/dev/sdb1      2048  62916607 62914560  30G Linux filesystem
+/dev/sdb3  62916608 104859647 41943040  20G FreeBSD ZFS
+$ sfdisk --quiet --delete /dev/sdb 1
+$ sfdisk --quiet --list /dev/sdb
+Device        Start       End  Sectors Size Type
+/dev/sdb3  62916608 104859647 41943040  20G FreeBSD ZFS
+$
+```
+
+## パーティションテーブルの修正
+
+gpartでパーティションテーブルを修正する場合`gpart modify`を使い、`-l`でパーティションラベル、`-t`はパーティションの型、`-s`でサイズの変更ができます。
+
+```console
+$ gpart show -l da0
+=>       40  312581728  da0  GPT  (149G)
+         40   62914560    3  data3  (30G)
+   62914600  249667168       - free -  (119G)
+
+$ gpart modify -i 3 -l part3 da0
+da0p3 modified
+$ gpart show -l da0
+=>       40  312581728  da0  GPT  (149G)
+         40   62914560    3  part3  (30G)
+   62914600  249667168       - free -  (119G)
+
+$
+```
+
+sfdiskでは、`--part-label`、`--part-type`、`--part-uuid`等を使います。
+
+```console
+$ sfdisk --quiet --list /dev/sdb
+Device     Start      End  Sectors Size Type
+/dev/sdb1   2048 62916607 62914560  30G Linux filesystem
+$ sfdisk --quiet --part-type /dev/sdb 1     # パーティションタイプの確認
+0FC63DAF-8483-4772-8E79-3D69D8477DE4
+$ sfdisk --quiet --part-type /dev/sdb 1 516E7CBA-6ECF-11D6-8FF8-00022D09712B # 変更するパーティションタイプを指定する
+$ sfdisk --quiet --list /dev/sdb
+Device     Start      End  Sectors Size Type
+/dev/sdb1   2048 62916607 62914560  30G FreeBSD ZFS
+$
+```
+
+sfdiskにはサイズを変更するオプションは用意されていませんが、`--dump`の出力結果を編集し、それをsfdiskで適応すればサイズ変更も出来ます。
+
+```console
+$ sfdisk --dump /dev/sdb | tee /tmp/sdb-dump
+label: gpt
+label-id: BEAA2987-0A6E-FA47-9128-46A30414AEC9
+device: /dev/sdb
+unit: sectors
+first-lba: 2048
+last-lba: 156301454
+sector-size: 512
+
+/dev/sdb1 : start=        2048, size=    62914560, type=516E7CBA-6ECF-11D6-8FF8-00022D09712B, uuid=61B5D641-7EBA-8842-B63F-FE5D0E766C70, name="part11"
+$ vi /tmp/sdb-dump        # size=62914560 を size=20G に書き換える
+
+$ cat /tmp/sdb-dump
+label: gpt
+label-id: BEAA2987-0A6E-FA47-9128-46A30414AEC9
+device: /dev/sdb
+unit: sectors
+first-lba: 2048
+last-lba: 156301454
+sector-size: 512
+
+/dev/sdb1 : start=        2048, size=20G, type=516E7CBA-6ECF-11D6-8FF8-00022D09712B, uuid=61B5D641-7EBA-8842-B63F-FE5D0E766C70, name="part11"
+$
+```
+
+変更したパーティションテーブルをsfdiskでストレージに書き戻します。
+
+```console
+$ sfdisk --quiet /dev/sdb < /tmp/sdb-dump
+$ sfdisk --quiet --list /dev/sdb
+Device     Start      End  Sectors Size Type
+/dev/sdb1   2048 41945087 41943040  20G FreeBSD ZFS
+$
+```
+
+ここではサイズを修正しただけでしたが、他の項目も必要に応じて同時に修正できます。
+
+## まとめ
+
+個人的に単純にパーティションを作るだけならgpartのほうが使いやすいのですが、[凝った修正を行う場合](https://qiita.com/belgianbeer/items/b638c12150dc86911922)はsfdiskの方が便利です。特にgpartにはパーティションのuuidやアトリビュートを保存したり修正したりする機能が無いのが残念で、その点でsfdiskはパーティションテーブルの全てのパラメータを編集できます。
