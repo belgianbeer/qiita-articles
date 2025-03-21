@@ -4,13 +4,13 @@
 
 時々ZFSを勉強するにはどうすればいいの？と聞かれることがあるのですが、筆者のおすすめはUSBメモリで試すことです。
 
-ZFSによるRAID構成を実験する場合複数のストレージデバイスを用意する必要がありますが、SSDやHDDでRAID構成を試せる台数をそろえるのは大変です。USBメモリであればUSBハブと組み合わせることで複数のデバイスを試せて価格とスペースの点で有利で、さらに稼働中にいきなり抜く等の乱暴な試験も実現でき、ZFSでのRAID構成を習得するにはある意味うってつけと言えます。特にLED付きのUSBメモリであればアクセスの様子も目視で確認できるので見ていても楽しいです。🙂
+ZFSによるRAIDを構成する場合複数のストレージデバイスを用意する必要がありますが、SSDやHDDでRAID構成を試せる台数をそろえるのは大変です。USBメモリであればUSBハブと組み合わせることで複数のデバイスを試せて価格とスペースの点で有利で、さらに稼働中にいきなり抜く等の乱暴な試験も実現でき、ZFSでのRAID構成を習得するにはある意味うってつけと言えます。特にLED付きのUSBメモリであればアクセスの様子も目視で確認できるので見ていても楽しいです。🙂
 
 ここではUSBメモリを組み合わせて、ZFSによる様々なRAIDを構成毎の特徴を含めて設定してみます。
 
 なおZFSにUSBメモリを使うという元ネタは、過去にサン・マイクロシステムズの「やっぱり Sun がスキ！」というSolarisの機能などを紹介するブログで、本記事と同じく「USBメモリで ZFS ！」のタイトルで投稿されたものです[^yappari]。
 
-[^yappari]:2007年5月に投稿されたものでサイトはすでに閉鎖されていますが、当時の記事は[インターネットアーカイブで確認](https://web.archive.org/web/20071013152120/http://blogs.sun.com/yappri/entry/usb_zfs)できます。この記事を見て数年後に実際に自分で試したときは、なぜかUSB HDDが複数あったため、USBメモリでは無く[USB HDDで実験](https://www.facebook.com/photo?fbid=685848231475753&set=a.148549968538918)しました。
+[^yappari]:2007年5月に投稿されたものでサイトはすでに閉鎖されていますが、当時の記事は[インターネットアーカイブ](https://web.archive.org/web/20071013152120/http://blogs.sun.com/yappri/entry/usb_zfs)で見ることができます(投稿時は写真もあったのですが、インターネットアーカーイブには残って無いようです)。当時この記事を見て実際に自分で試したのはその数年後ですが、USB HDDが十分な数あったのでUSBメモリでは無く[USB HDDで実験](https://www.facebook.com/photo?fbid=685848231475753&set=a.148549968538918)しました。
 
 ## USBメモリ 4個 と USBハブの準備
 
@@ -24,7 +24,7 @@ USBハブは手持ちのものを利用しました。この形だとメモリ�
 
 ## USBメモリの初期化
 
-新品のUSBメモリのパーティションは容量にもよりますが多くはMBR(DOS)形式で全体をFAT32あるいはexFATでフォーマットされた状態となっています。MBR形式のパーティションをそのまま使うことも出来ますが、柔軟な管理のためにGPTでパーティションを作り直します。GPTであれば、それぞれのパーティションにラベル(名前)をつけられるので、usb0～usb3を割り当てます。
+新品のUSBメモリのパーティションは容量にもよりますが多くはMBR(DOS)形式で全体をFAT32あるいはexFATでフォーマットされた状態となっています。MBR形式のパーティションをそのまま使うこともできますが、柔軟な管理のためにGPTでパーティションを作り直します。GPTであれば、それぞれのパーティションにラベル(名前)をつけられるので、usb0～usb3を割り当てます。
 
 ### FreeBSDでのUSBメモリの初期化
 
@@ -54,7 +54,7 @@ $ gpart show da1                        # da1のSDカードのパーティショ
 $
 ```
 
-RAID Z(後述)を構成する場合は同容量でない場合に注意メッセージが表示されるので、容量の小さいSDカードに合わせてmicroSDカードのパーティションサイズを少し減らすため、`gpart add`に`-s`オプションを使ってSDカードの3862448ブロック(1ブロックは512バイト)に制限します。
+RAID Z(後述)を構成する場合は同容量でない場合に注意が表示されるので、容量の小さいSDカードに合わせてmicroSDカードのパーティションサイズを少し減らすため、`gpart add`に`-s`オプションを使ってSDカードの1884Mに制限します。
 
 実際には4個のUSBメモリを初期化するため、次のようにシェルスクリプトを作って実行しました。
 
@@ -102,18 +102,13 @@ LinuxでのUSBメモリの初期化をsdbに対して行う場合は次のよう
 
 ```console
 $ wipefs -a /dev/sdb                        # (1) 既存のパーティションテーブルのクリア
-$ echo 'label: gpt' | sfdisk -q /dev/sdb    # (2) gpt形式のパーティションの初期化
-$ echo "type=6A898CC3-1DD2-11B2-99A6-080020736631, name=usb${j}, size=3858432" | sfdisk -q /dev/sd${i}
-$                                           # (3) ZFS用パーティションの作成 ラベル名は「usb0」
+$ echo 'label: gpt' | sfdisk --quiet /dev/sdb    # (2) gpt形式のパーティションの初期化
+$ echo "type=6A898CC3-1DD2-11B2-99A6-080020736631, name=usb0, size=1884M" | sfdisk  --quiet /dev/sdb
+                                            # (3) ZFS用パーティションの作成 ラベル名は「usb0」
 $ zpool labelclear -f /dev/sdb1             # (4) ZFSのプールラベルの消去 (初めて使うUSBメモリの場合は不要)
-$ sfdisk --list /dev/sdb                    # (5) 作ったパーティションの確認
-Disk /dev/sdb: 1.9 GiB, 2041577472 bytes, 3987456 sectors
-Disk model: Storage Device
-Units: sectors of 1 * 512 = 512 bytes
-Sector size (logical/physical): 512 bytes / 512 bytes
-I/O size (minimum/optimal): 512 bytes / 512 bytes
-Disklabel type: gpt
-Disk identifier: CBE6E991-0D89-DB49-B7E5-B2BD8FA00C89
+$ sfdisk --list --quiet /dev/sdb            # (5) 作ったパーティションの確認
+Device     Start     End Sectors  Size Type
+/dev/sdb1   2048 3860479 3858432  1.8G Solaris /usr & Apple ZFS
 $
 ```
 
@@ -126,13 +121,13 @@ $ cat usbmem-init-linux
 j=0
 for i in b c d e
 do
-    wipefs -a /dev/sd${i}
-    sleep 1
-    echo 'label: gpt' | sfdisk -q /dev/sd${i}
-    sleep 1
-    # sleep 1
-    # zpool labelclear -f /dev/sd${i}1
-    j=$((j + 1))
+        wipefs --quiet --all /dev/sd${i}
+        sleep 1
+        echo "label: gpt
+        type=6A898CC3-1DD2-11B2-99A6-080020736631, name=usb${j}, size=1884M" | sfdisk --quiet /dev/sd${i}
+        sleep 1
+        # zpool labelclear -f /dev/sd${i}1
+        j=$((j + 1))
 done
 $ ./usbmem-init-linux
 $ ls /dev/disk/by-partlabel/usb?     # 用意したパーティションの存在を確認
