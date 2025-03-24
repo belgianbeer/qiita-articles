@@ -7,7 +7,7 @@
 
 ## 内蔵ストレージの構成変更
 
-SSDを使っていたときのストレージ構成を示すと次の表のようになっていました。
+SSDを使っていたときのストレージ構成は次の表のようになっていました。
 
 <table>
   <caption> SSD使用時のストレージ構成 </caption>
@@ -23,11 +23,24 @@ SSDを使っていたときのストレージ構成を示すと次の表のよ�
     <td align="center"> ada1 </td> <td align="center"> HDD </td> <td align="center"> 6 TB </td> <td> /home を含むデータ領域 (ada2 と ZFSミラーを構成) </td>
   </tr>
   <tr>
-    <td align="center"> ada2 </td> <td align="center"> HDD </td> <td align="center"> 6 TB </td> <td> /home を含むデータ領域 (ada1 と ZFSミラーを構成) </td>
+    <td align="center"> ada2 </td> <td align="center"> HDD </td> <td align="center"> 6 TB </td> <td> ada1に同じ (ada1 と ZFSミラーを構成) </td>
   </tr>
 </table>
 
-前述の構成からSSDを撤去するために、次の表のように構成変更を行います。
+これを次の手順で作業を行うことで、SSDを撤去します。なお以降の説明では2台のHDDを区別するため、一方(ada1側)をHDD1、他方(ada2側)をHDD2と呼びます。
+
+1. HDD1とHDD2で構成されているZFSミラーを解除してHDD1をフリーにする
+2. HDD1のパーティションを作り直し、ブート、データ、スワップの各領域を用意する
+3. HDD1にブートコードを書き込む
+4. SSDのシステムデータをHDD1にコピーする
+5. 電源を切ってSSDをシステムから撤去する
+6. HDD2のデータをHDD1の残りの領域にコピーする
+7. HDD2のパーティションを作り直してHDD1と同じにする
+8. HDD1とHDD2のデータ領域をZFSでミラーにする
+
+ここで2から4の手順は、インストーラを使って新たなFreeBSDをHDD1にインストールし、SSDの既存の設定内容をHDD1にコピーする方法でも可能です。しかし既存の設定を確実に網羅するためにはSSDの内容を直接コピーする方が賢明と言えます。
+
+最終的には次の構成になります。
 
 <table>
   <caption> SSD撤去後のストレージ構成 </caption>
@@ -44,6 +57,12 @@ SSDを使っていたときのストレージ構成を示すと次の表のよ�
   </tr>
 </table>
 
+それでは順を追って、構成変更を説明します。
+
+## 既存のパーティションテーブルの確認
+
+最初に既存のパーティションテーブルを確認します。SSDのパーティションは次のようになっています。
+
 ```console
 $ gpart show ada0    # SSDのパーティション情報の表示
 =>       40  488397088  ada0  GPT  (233G)
@@ -52,7 +71,13 @@ $ gpart show ada0    # SSDのパーティション情報の表示
        2048    8388608     2  freebsd-swap  (4.0G)
     8390656  480006144     3  freebsd-zfs  (229G)
   488396800        328        - free -  (164K)
+```
 
+当サーバーは2010年頃のもので、UEFI非対応のBIOSです。そのためESP(EFI System Partition)が無く、freebsd-boot(512KB)、freebsd-swap(4GB)、freebsd-zfs(229GB)の3個のパーティションから成っています。
+
+一方HDD側は次の通りで、全領域がデータ用のZFSパーティションです。
+
+```console
 $ gpart show ada1    # HDDのパーティション情報の表示 (ada2も同じ構成)
 =>         40  11721045088  ada1  GPT  (5.5T)
            40  11721045088     1  freebsd-zfs  (5.5T)
@@ -60,8 +85,129 @@ $ gpart show ada1    # HDDのパーティション情報の表示 (ada2も同じ
 $
 ```
 
+ZFSプールの構成は次の通りです。
+
+```console
+$ zpool list -v
+NAME             SIZE  ALLOC   FREE  CKPOINT  EXPANDSZ   FRAG    CAP  DEDUP    HEALTH  ALTROOT
+zroot            228G  23.0G   205G        -         -    15%    10%  1.00x    ONLINE  -
+  ada0p3         229G  23.0G   205G        -         -    15%  10.1%      -    ONLINE
+zvol0           5.45T  2.77T  2.68T        -         -     1%    50%  1.00x    ONLINE  -
+  mirror-0      5.45T  2.77T  2.68T        -         -     1%  50.8%      -    ONLINE
+    gpt/sdisk1  5.46T      -      -        -         -      -      -      -    ONLINE
+    gpt/sdisk2  5.46T      -      -        -         -      -      -      -    ONLINE
+```
+
+zrootがSSD側のZFSプール、zvol0が2台のHDDで構成されたZFSのミラープールとなります。
+
+## HDD1のパーティションの作り直し
+
+前述の通りHDDには空き領域が無いので、そのままではブート用のパーティションを用意することができません。そこで一旦ミラープールからミラーを解除して、HDD1をフリーにします。
+
+```console
+$ zpool detach zvol1 gpt/sdisk1
+$ zpool labelclear /dev/ada1p1     # 今回は不要
+```
+
+これでzvol0は単純なZFSプールになり、HDD1のパーティションを変更できます。もちろんミラーを解除したので、万が一HDD2側にエラーがあるとデータを失うリスクがあります。
+
+それではHDD1のパーティションを作り直します。
+
+```console
+$ gpart show ada1                                             # HDD1のパーティションの確認
+=>         40  11721045088  ada1  GPT  (5.5T)
+           40  11721045088     1  freebsd-zfs  (5.5T)
+
+$ gpart delete -i 1 ada1                                      # データ用のパーティションの削除
+ada1p1 deleted
+$ gpart add -a 4k -t freebsd-boot -s 512K  -l gptboot0 ada1   # freebsd-bootパーティションの作成
+ada1p1 added
+$ gpart add -a 4k -t efi          -s 260M  -l efiboot0 ada1   # ESP パーティションの作成
+ada1p2 added
+$ gpart add -a 4k -t freebsd-swap -s 4G    -l swap0    ada1   # スワップ用パーティションの作成
+ada1p3 added
+$ gpart add -a 4k -t freebsd-zfs  -s 5367G -l hdpool0  ada1   # システム、データ用のZFS用パーティションの作成 
+ada1p4 added
+$ gpart show ada1                                             # 作ったパーティションの確認
+=>         40  11721045088  ada1  GPT  (5.5T)
+           40         1024     1  freebsd-boot  (512K)
+         1064       532480     2  efi  (260M)
+       533544      8388608     3  freebsd-swap  (4.0G)
+      8922152  11255414784     4  freebsd-zfs  (5.2T)
+  11264336936    456708192        - free -  (218G)
+
+$
+```
+
+今回新たにESPを割り当てているのは、もし将来サーバーを交換してHDDをそのまま使い続けることになった場合、新たなサーバーはUEFI対応のものになるのは確実なので、ESPが無いと起動のために再びパーティションの作り直す羽目になるのを防ぐ目的です。他にも少し予備領域を用意しておこうと考え200GB程度残してあります。
+
+## HDD1へのブートコードの書き込み
+
+パーティションが構成できたので、HDD1からFreeBSDを起動できるようにブートコードを書き込みます。
+HDD1はGPTで構成したので、「/boot/zfsgptboot」をfreebsd-bootパーティションに書き込みます。
+
+```console
+$ gpart bootcode -b /boot/pmbr -p /boot/gptzfsboot -i 1 ada1
+partcode written to ada1p1
+bootcode written to ada1
+$
+```
+
+## SSDのシステムデータのHDD1へのコピー
+
+システムデータをコピーするため、HDD1に新たなZFSプールを作成します。本当はインストーラのデフォルトの名前である「zroot」で作りたいのですが、すでに「zroot」があるため後で名前を変更することにして一旦「zroot2」という名前で作っています。またaltrootを指定しているのは、これからコピーするのは「zroot」にあるFreeBSDのOS部分なので、ディレクトリ構成が衝突しないようにしています。
+
+```console
+$ zpool create -o altroot=/mnt -O compress=lz4 -O atime=off -m none -f zroot2 gpt/hdpool0
+$ zpool list
+NAME     SIZE  ALLOC   FREE  CKPOINT  EXPANDSZ   FRAG    CAP  DEDUP    HEALTH  ALTROOT
+zroot    228G  23.0G   205G        -         -    15%    10%  1.00x    ONLINE  -
+zroot2  5.23T   384K  5.23T        -         -     0%     0%  1.00x    ONLINE  /mnt
+zvol0   5.45T  2.77T  2.68T        -         -     1%    50%  1.00x    ONLINE  -
+$
+```
+
+次はシステムのコピーです。これにはzfsのsendとreceive (recv)を使います。send/receiveはZFSのデータセットを効率よく転送できます。特にsendの「-R」オプションでは、指定したデータセット配下の全てを転送してくれるので、多数のZFSのデータセットがあってもまとめて処理できます。
+
+```console
+$ zfs snapshot -r zroot@copy                            # 転送元になるsnapshotの作成
+$ zfs send -R zroot@copy | zfs receive -v -F -u zroot2  # sendとrecvでzrootからzroot2へコピー
+.....
+$
+```
+
+コピー時間は計測しなかったのですが、15分程度だったと思います。これで大部分の内容がコピーできましたが、snapshotを作成した時点からコピー終了までの時間に書き込まれた分(syslogによるもの等)のコピーが出来ていません。確実に全データをコピーするため、ここからはシングルユーザーモードで作業を行います。
+
+シングルユーザーモードに移るには、プロセス番号1のinitにkillを実行します。
+
+```console
+$ kill 1
+```
+
+しばらくすると「/bin/sh」の起動を促されるのでEnterを入力してシングルモードに移ります。
 
 
+```console
+# zfs snapshot -r zroot@copy1      # snapshotの作成
+# zfs send -R -I zroot@copy zroot@copy1 | zfs receive -v -u zroot2 # 前回のsnapshotからの差分を転送
+```
+
+以上でSSDからのコピーが完了したので、そのまま電源を切ります。
+
+```console
+$ zfs snapshot -r zroot@copy
+$ zfs send -R zroot@copy | zfs receive -v -F -u zroot2
+$
+```
+
+
+
+```console
+$ gpart bootcode -b /boot/pmbr -p /boot/gptzfsboot -i 1 ada1
+partcode written to ada1p1
+bootcode written to ada1
+$
+```
 
 
 
@@ -93,7 +239,6 @@ $
     | freebsd-zfs  | 5.5TB
     +--------------+
 ```
-
 
 ```console
 $ zpool detach zvol1 gpt/sdisk1
@@ -207,6 +352,7 @@ $ zpool import -R /zvol0 -N zvol0
 $ zpool destroy zvol0
 ```
 
+```console
 $ gpart delete -i 1 ada1
 $ gpart add -a 4k -t freebsd-boot -s 512K -l gptboot1 ada1
 ada1p1 added
