@@ -143,8 +143,9 @@ $
 
 ## HDD1へのブートコードの書き込み
 
-パーティションが構成できたので、HDD1からFreeBSDを起動できるようにブートコードを書き込みます。
-HDD1はGPTで構成したので、「/boot/zfsgptboot」をfreebsd-bootパーティションに書き込みます。
+パーティションが構成できたので、HDD1からFreeBSDを起動できるようにブートコードを書き込みます。ブートコードの書き込み自体は後で作業しても構いませんが、後にしようとして忘れることも多く、いざ起動させようとして「あれ？」ってことになりがちなのでさっさと済ませておきます。
+
+HDD1はGPTで構成していますがBIOSがUEFIを非対応なので、「/boot/gptzfsboot」をfreebsd-bootパーティションに書き込みます。なおUEFI BIOSの場合のブートコードの処理は本記事の最後に付録としてつけておきます。
 
 ```console
 $ gpart bootcode -b /boot/pmbr -p /boot/gptzfsboot -i 1 ada1
@@ -178,87 +179,109 @@ $
 
 コピー時間は計測しなかったのですが、15分程度だったと思います。これで大部分の内容がコピーできましたが、snapshotを作成した時点からコピー終了までの時間に書き込まれた分(syslogによるもの等)のコピーが出来ていません。確実に全データをコピーするため、ここからはシングルユーザーモードで作業を行います。
 
-シングルユーザーモードに移るには、プロセス番号1のinitにkillを実行します。
+シングルユーザーモードに移るには、**コンソールで**プロセス番号1のinitにkillを実行します。いくつかのプロセス停止のメッセージが表示されたあとに「/bin/sh」の起動を促されるのでEnterを入力してシングルモードに移ります。
 
 ```console
 $ kill 1
+......
+Enter full pathname of shell or RETURN for /bin/sh:
 ```
 
-しばらくすると「/bin/sh」の起動を促されるのでEnterを入力してシングルモードに移ります。
-
+この状態であればストレージにバックグラウンドで書き込むプロセスは完全に停止しています。あとはSSDの前回のsnapshotからの差分をHDD1に転送します。
 
 ```console
 # zfs snapshot -r zroot@copy1      # snapshotの作成
 # zfs send -R -I zroot@copy zroot@copy1 | zfs receive -v -u zroot2 # 前回のsnapshotからの差分を転送
 ```
 
-以上でSSDからのコピーが完了したので、そのまま電源を切ります。
+以上でSSDからHDD1へのシステムデータのコピーが完了したので、そのままサーバーを停止します。
 
 ```console
-$ zfs snapshot -r zroot@copy
-$ zfs send -R zroot@copy | zfs receive -v -F -u zroot2
+# poweroff
+```
+
+## SSDの撤去とプール名の変更
+
+SSDは不要になったので、筐体からSSDを撤去してHDD1、HDD2のSATAのSATAの接続を1個づつずらします。これによって以降はHDD1がada0、HDD2がada1となります。
+
+次に「zroot2」で作ったプールの名前を「zroot」に変更します。プール名はzpool importで簡単に変更できるのですが、import済みのプール名は変更できないので、ＦreeBSDのインストール用イメージ(USBメモリ)で起動する必要があります。
+
+起動したら最初のメニューでShellを選択します。
+
+あとは「zroot2」をimportして名前を変更します。
+
+```console
+$ zpool import -R /mnt -N -f zroot2 zroot   # zroot2のプールをzrootという名前でimport
+$ zpool export zroot                        # 名前が変更できたのでexport
+```
+
+以上でプール名の変更は完了です。リブートするとHDDからFreeBSDが起動します。
+
+起動後にプールの状況を見ると、次のように2台のHDDでのサーバーとして動作していることが確認できます。
+
+```console
+$ zpool list -v
+NAME            SIZE  ALLOC   FREE  CKPOINT  EXPANDSZ   FRAG    CAP  DEDUP    HEALTH  ALTROOT
+zroot          5.23T  22.9G  5.21T        -         -     0%     0%  1.00x    ONLINE  -
+  gpt/hdpool0  5.24T  22.9G  5.21T        -         -     0%  0.42%      -    ONLINE
+zvol0          5.45T  2.77T  2.68T        -         -     1%    50%  1.00x    ONLINE  -
+  gpt/sdisk2   5.46T  2.77T  2.68T        -         -     1%  50.8%      -    ONLINE
+```
+
+ZFSルートのストレージ交換としてはここまでで作業は終了となります。
+
+## HDD2のデータをHDD1へ転送しZFSミラープールを再構成する
+
+ここからはデータ領域をZFSミラープールに変更するための作業となります。今のままではデータのあるzvol0のパーティションのほうがzrootより大きいため、そのままではミラープールを構成することができません。そこでまずzvol0の内容をzrootに転送して、HDD2のパーティションを変更します。
+
+転送はSSDの内容を転送したのと同様の手順で次の2段階の作業となります。
+
+1. zvol0のsnapshotからzrootへ転送
+2. 1の完了後に、その後の更新分の転送
+
+当サーバーでは毎日夜中にZFSのスナップショットを作成しているので、それをzrootへ転送します。
+
+```console
+$ zfs create zroot/zvol0      # HDD1のzrootにzvol0を転送するZFSファイルシステムの作成
+$ zfs send -R zvol0@_daily_2025-03-07 | time zfs receive -v -F -u zroot/zvol0 # 夜中に作成しているsnapshotからデータを転送
+    29134.60 real         2.76 user      3231.93 sys
 $
 ```
 
-
-
-```console
-$ gpart bootcode -b /boot/pmbr -p /boot/gptzfsboot -i 1 ada1
-partcode written to ada1p1
-bootcode written to ada1
-$
-```
-
-
+この転送にかかった時間は29000秒ほどなので約8時間かかったことになります。もちろんこの転送中にもzvol0へのデータの書き込みはありました。そのため
+上記send/receiveが終わった後、追加書き込み分の転送を行います。なおzvol0にデータの書き込みを行うのは筆者自身なので、自分が書き込む操作を行わない限り更新データは無いので、シングルユーザーモードにする必要はありません。
 
 ```console
-$ gpart show ada0
-=>       40  488397088  ada0  GPT  (233G)
-         40       1024     1  freebsd-boot  (512K)
-       1064        984        - free -  (492K)
-       2048    8388608     2  freebsd-swap  (4.0G)
-    8390656  480006144     3  freebsd-zfs  (229G)
-  488396800        328        - free -  (164K)
-
-$ 
+$ zfs snapshot -r zvol0@moving      # 次のスナップショットの作成
+$ zfs send -R -I zvol0@_daily_2025-03-07 zvol0@moving | zfs receive -v -u zroot/zvol0  # 残りの更新分の転送
+      278.42 real         1.69 user        50.69 sys
 ```
 
+これでzvol0の内容はすべてzrootへコピーされました。ただzroot/zvol0へ転送してるので、一旦zvol0をexportしてzroot/zvol0配下のZFSファイルシステムの構成を手作業で変更しました。例えば「zvol0/home/\*」は転送後に「zroot/zvol0/home/\*」になっているので、`zfs rename zroot/zvol0/home zroot/home`で構成の修正を行っています。
 
-```text
-      SSD
-    +--------------+
-    | freebsd-boot | 512KB
-    +--------------+
-    | freebsd-swap | 2GB
-    +--------------+
-    | freebsd-zfs  | 223GB
-    +--------------+
+全てのデータがHDD1へ転送できたので、HDD2の内容を初期化します。
 
-      HDD
-    +--------------+
-    | freebsd-zfs  | 5.5TB
-    +--------------+
-```
+まずプールの情報を消すために、一旦zvol0をimportしてdestroyします。
 
 ```console
-$ zpool detach zvol1 gpt/sdisk1
-$ zpool labelclear /dev/ada1p1
+$ mkdir /zvol0
+$ zpool import -R /zvol0 -N zvol0
+$ zpool destroy zvol0
 ```
 
-```console
-$ gpart show ada1
-=>         40  11721045088  ada1  GPT  (5.5T)
-           40  11721045088     1  freebsd-zfs  (5.5T)
+直接`zpool labelclear /dev/ada1p1`を実行しても良いのでが、import後にzroot配下のファイルシステムとzvol0配下のファイルシステムを比較して確認するためにimportしてからdestroyという運びになりました。
 
+続いてHDD2側のパーティションを作り直しHDD1と同じ構成にします。
+
+```console
 $ gpart delete -i 1 ada1
-ada1p1 deleted
-$ gpart add -a 4k -t freebsd-boot -s 512K -l gptboot0 ada1
+$ gpart add -a 4k -t freebsd-boot -s 512K  -l gptboot1 ada1
 ada1p1 added
-$ gpart add -a 4k -t efi          -s 260M -l efiboot0 ada1
+$ gpart add -a 4k -t efi          -s 260M  -l efiboot1 ada1
 ada1p2 added
-$ gpart add -a 4k -t freebsd-swap -s 4G   -l swap0    ada1
+$ gpart add -a 4k -t freebsd-swap -s 4G    -l swap1    ada1
 ada1p3 added
-$ gpart add -a 4k -t freebsd-zfs  -s 5367G  -l hdpool0     ada1
+$ gpart add -a 4k -t freebsd-zfs  -s 5367G -l hdpool1  ada1
 ada1p4 added
 $ gpart show ada1
 =>         40  11721045088  ada1  GPT  (5.5T)
@@ -271,122 +294,10 @@ $ gpart show ada1
 $
 ```
 
-```console
-$ gpart bootcode -b /boot/pmbr -p /boot/gptzfsboot -i 1 ada1
-partcode written to ada1p1
-bootcode written to ada1
-$ zpool create -o altroot=/mnt -O compress=lz4 -O atime=off -m none -f zroot2 gpt/hdpool0
-$ zpool list
-NAME     SIZE  ALLOC   FREE  CKPOINT  EXPANDSZ   FRAG    CAP  DEDUP    HEALTH  ALTROOT
-zroot    228G  23.0G   205G        -         -    15%    10%  1.00x    ONLINE  -
-zroot2  5.23T   384K  5.23T        -         -     0%     0%  1.00x    ONLINE  /mnt
-zvol0   5.45T  2.77T  2.68T        -         -     1%    50%  1.00x    ONLINE  -
-$
-```
-
-```console
-$ zfs snapshot -r zroot@copy
-$ zfs send -R zroot@copy | zfs receive -v -F -u zroot2
-$
-```
-
-```console
-$ zfs snapshot -r zroot@copy1
-$ zfs send -R -I zroot@copy zroot@copy1 | zfs receive -v -u zroot2
-```
-
-USBでbootする
-
-```console
-$ zpool import -R /mnt -N zroot2 zroot
-$ zpool export zroot
-```
-
-reboot
-
-```console
-$ zpool list -v
-NAME            SIZE  ALLOC   FREE  CKPOINT  EXPANDSZ   FRAG    CAP  DEDUP    HEALTH  ALTROOT
-zroot          5.23T  22.9G  5.21T        -         -     0%     0%  1.00x    ONLINE  -
-  gpt/hdpool0  5.24T  22.9G  5.21T        -         -     0%  0.42%      -    ONLINE
-zvol0          5.45T  2.77T  2.68T        -         -     1%    50%  1.00x    ONLINE  -
-  gpt/sdisk2   5.46T  2.77T  2.68T        -         -     1%  50.8%      -    ONLINE
-```
-
-```console
-
-$ zfs create zroot/zvol0
-$ zfs send -R zvol0@_daily_2025-03-07 | zfs receive -v -F -u zroot/zvol0
-    29134.60 real         2.76 user      3231.93 sys
-```
-
-```console
-$ zfs snapshot -r zvol0@moving
-$ zfs send -R -I zvol0@_daily_2025-03-07 zvol0@moving | zfs receive -v -u zroot/zvol0
-      278.42 real         1.69 user        50.69 sys
-```
-
-```console
-$ kill 1
-```
-
-```console
-$ zpool export zvol0
-
-zfs rename zroot/zvol0/annually  zroot/annually || exit
-sleep 1
-zfs rename zroot/zvol0/archive   zroot/archive || exit
-sleep 1
-zfs rename zroot/zvol0/backup    zroot/backup || exit
-sleep 1
-zfs rename zroot/zvol0/backupold zroot/backupold || exit
-sleep 1
-zfs rename zroot/zvol0/home      zroot/home || exit
-sleep 1
-zfs rename zroot/zvol0/opt       zroot/opt || exit
-```
-
-```console
-$ mkdir /zvol0
-$ zpool import -R /zvol0 -N zvol0
-$ zpool destroy zvol0
-```
-
-```console
-$ gpart delete -i 1 ada1
-$ gpart add -a 4k -t freebsd-boot -s 512K -l gptboot1 ada1
-ada1p1 added
-$ gpart add -a 4k -t efi          -s 260M -l efiboot1 ada1
-ada1p2 added
-$ gpart add -a 4k -t freebsd-swap -s 4G   -l swap1    ada1
-ada1p3 added
-$ gpart add -a 4k -t freebsd-zfs  -s 5367G  -l hdpool1     ada1
-ada1p4 added
-$
-```
+パーティションが用意できたので、ZFSミラープールを再構成します。
 
 ```console
 $ zpool attach zroot gpt/hdpool0 gpt/hdpool1
 ```
 
-```console
-$ zpool status
-  pool: zroot
- state: ONLINE
-status: One or more devices is currently being resilvered.  The pool will
-        continue to function, possibly in a degraded state.
-action: Wait for the resilver to complete.
-  scan: resilver in progress since Fri Mar  7 23:42:43 2025
-        4.39G / 2.79T scanned at 321M/s, 0B / 2.79T issued
-        0B resilvered, 0.00% done, no estimated completion time
-config:
-
-        NAME             STATE     READ WRITE CKSUM
-        zroot            ONLINE       0     0     0
-          mirror-0       ONLINE       0     0     0
-            gpt/hdpool0  ONLINE       0     0     0
-            gpt/hdpool1  ONLINE       0     0     0
-
-errors: No known data errors
-$
-```
+ミラーの同期を待って、作業は終了です。
