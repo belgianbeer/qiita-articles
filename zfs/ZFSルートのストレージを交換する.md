@@ -325,7 +325,50 @@ bootcode written to ada1
 #
 ```
 
-ミラーの同期を待って、作業は終了です。
+これでミラーの同期が始まります。ミラーの状況を確認するには`zpool status`を使います。
+
+```console
+# zpool status
+  pool: zroot
+ state: ONLINE
+status: One or more devices is currently being resilvered.  The pool will
+        continue to function, possibly in a degraded state.
+action: Wait for the resilver to complete.
+  scan: resilver in progress since Fri Mar  7 23:42:43 2025
+        598G / 2.79T scanned at 189M/s, 314G / 2.79T issued at 99.3M/s
+        315G resilvered, 10.98% done, 07:17:27 to go
+config:
+
+        NAME             STATE     READ WRITE CKSUM
+        zroot            ONLINE       0     0     0
+          mirror-0       ONLINE       0     0     0
+            gpt/hdpool0  ONLINE       0     0     0
+            gpt/hdpool1  ONLINE       0     0     0  (resilvering)
+
+errors: No known data errors
+#
+```
+
+ミラーの同期中でも通常通りサーバーとしては利用できますが、ストレージのパフォーマンスは多少悪化します。
+
+そしてミラーの同期完了を待って、作業は終了です。
+
+```console
+# zpool status
+  pool: zroot
+ state: ONLINE
+  scan: resilvered 2.80T in 15:08:29 with 0 errors on Sat Mar  8 14:51:12 2025
+config:
+
+        NAME             STATE     READ WRITE CKSUM
+        zroot            ONLINE       0     0     0
+          mirror-0       ONLINE       0     0     0
+            gpt/hdpool0  ONLINE       0     0     0
+            gpt/hdpool1  ONLINE       0     0     0
+
+errors: No known data errors
+#
+```
 
 ## UEFI用ブートコードの書き込み
 
@@ -365,4 +408,4 @@ BytesPerSec=512 SecPerClust=32 ResSectors=1 FATs=2 RootDirEnts=512 Media=0xf0 FA
 # efibootmgr -a -c -l /mnt/efi/freebsd/loader.efi -L FreeBSD
 ```
 
-ただしすでにFreeBSDが起動するためのブート変数が設定されている場合は「efbootmgr」の「-B」オプションで古いブート変数を削除する必要があります。これらは「efbootmgr」のマニュアルに記載されているので、そちらを参照してください。
+ただしすでにFreeBSDが起動するためのブート変数が設定されている場合は「efbootmgr」の「-B」オプションで古いブート変数を削除する必要があります。これらは「efbootmgr」のマニュアルに記載されているので、そちらを参照してください。また「/mnt/efi/boot/bootx64.efi」を正しく用意できていれば、既存のブート変数を削除すれば大丈夫です。
