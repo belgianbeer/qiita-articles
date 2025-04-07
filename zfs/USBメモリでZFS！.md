@@ -60,17 +60,18 @@ RAID Z(後述)を構成する場合は同容量でない場合に注意が表示
 
 ```console
 $ cat usbmem-init-freebsd     # シェルスクリプトの内容の表示
-#!/bin/sh
+#! /bin/sh
+[ $(uname -s) = FreeBSD ] || exit
 
-for i in 0 1 2 3
+for i in 0 # 1 2 3
 do
-    gpart destroy -F da$i
-    sleep 1
-    gpart create -s gpt da$i
-    sleep 1
-    gpart add -t freebsd-zfs -s 3862448 -l usb$i da$i
-    # sleep 1
-    # zpool labelclear -f da${i}p1
+        gpart destroy -F da$i
+        sleep 1
+        gpart create -s gpt da$i
+        sleep 1
+        gpart add -t freebsd-zfs -a 1M -s 1884M -l usb$i da$i
+        # sleep 1
+        # zpool labelclear -f da${i}p1
 done
 $ ./usbmem-init-freebsd     # シェルスクリプトの実行
 da0 destroyed
@@ -92,7 +93,7 @@ $ gpart show -l da0 da1 da2 da3     # 出来たパーティションをラベル
 $
 ```
 
-各コマンドの間に`sleep 1`があるのは、このような操作ではコマンドの実行はすぐに終了するのにUSBメモリへの書き込みに時間がかかることがあって、シェルスクリプトでたて続けに行うとトラブルになることがあるの回避しています。
+各コマンドの間に`sleep 1`があるのは、このような操作ではコマンドの実行はすぐに終了するのにUSBメモリへの書き込みに時間がかかることがあって、シェルスクリプトで連続して実行するとトラブルになることがあるの回避しています。さらに後述するLinuxの場合と物理的に同じ場所にパーティションが作られるように、gpartコマンドのパラメーターを調整しています。
 
 ### LinuxでのUSBメモリの初期化
 
@@ -103,14 +104,15 @@ LinuxでのUSBメモリの初期化をsdbに対して行う場合は次のよう
 ```console
 $ wipefs -a /dev/sdb                        # (1) 既存のパーティションテーブルのクリア
 $ echo 'label: gpt' | sfdisk --quiet /dev/sdb    # (2) gpt形式のパーティションの初期化
-$ echo "type=6A898CC3-1DD2-11B2-99A6-080020736631, name=usb0, size=1884M" | sfdisk  --quiet /dev/sdb
-                                            # (3) ZFS用パーティションの作成 ラベル名は「usb0」
+$ echo "type=6A898CC3-1DD2-11B2-99A6-080020736631, name=usb0, size=1884M" | sfdisk  --quiet /dev/sdb  # (3) ZFS用パーティションの作成 ラベル名は「usb0」
 $ zpool labelclear -f /dev/sdb1             # (4) ZFSのプールラベルの消去 (初めて使うUSBメモリの場合は不要)
 $ sfdisk --list --quiet /dev/sdb            # (5) 作ったパーティションの確認
 Device     Start     End Sectors  Size Type
 /dev/sdb1   2048 3860479 3858432  1.8G Solaris /usr & Apple ZFS
 $
 ```
+
+パーティションの作成でsfdiskコマンドを使っていますが、sfdiskコマンドをあまりご存じで無い方は「[FreeBSDユーザーがsfdiskを使いこなす](https://qiita.com/belgianbeer/items/cc0093ea6ca06a3a4f6c)」を参照してください。
 
 実際にはFreeBSDの場合と同様にシェルスクリプトを作って実行しました。
 
@@ -121,13 +123,15 @@ $ cat usbmem-init-linux
 j=0
 for i in b c d e
 do
-        wipefs --quiet --all /dev/sd${i}
-        sleep 1
-        echo "label: gpt
-        type=6A898CC3-1DD2-11B2-99A6-080020736631, name=usb${j}, size=1884M" | sfdisk --quiet /dev/sd${i}
-        sleep 1
-        # zpool labelclear -f /dev/sd${i}1
-        j=$((j + 1))
+    wipefs --quiet --all /dev/sd${i}
+    sleep 1
+    sfdisk --quiet /dev/sd${i} <<- EOT
+        label: gpt
+        type=6A898CC3-1DD2-11B2-99A6-080020736631, name=usb${j}, size=1884M
+    EOT
+    # sleep 1
+    # zpool labelclear -f /dev/sd${i}1
+    j=$((j + 1))
 done
 $ ./usbmem-init-linux
 $ ls /dev/disk/by-partlabel/usb?     # 用意したパーティションの存在を確認
@@ -136,5 +140,60 @@ $ ls /dev/disk/by-partlabel/usb?     # 用意したパーティションの存�
 $
 ```
 
+これでテスト用のストレージデバイス(ここではUSBメモリ)の準備が出来ました。以降はこのデバイスを使ってZFSプールを構成します。
+
+## RAID 0 ストライプ
+
+### RAID 0の特徴
+
+最初はRAID 0、つまりストライプです。
+
+RAID 0ではデータを適当なサイズに分割して、ここでは4台のデバイスに分散して書き込みを行い、読み出しでは4台のデバイスから読んだものをまとめて元のデータに戻します。デバイスがSSDやHDDであれば(USBメモリではあまり効果が無い)、読み書きの負荷がデバイスに分散されることで1台で利用する場合に比べて高速になります。
+
+しかしRAID 0の場合、複数デバイスを
+
+```console
+# zpool create -O atime=off -O compression=lz4 -f upool gpt/usb0 gpt/usb1 gpt/usb2 gpt/usb3
+# zpool list -v upool
+NAME         SIZE  ALLOC   FREE  CKPOINT  EXPANDSZ   FRAG    CAP  DEDUP    HEALTH  ALTROOT
+upool          7G   128K  7.00G        -         -     0%     0%  1.00x    ONLINE  -
+  gpt/usb0  1.84G  39.5K  1.75G        -         -     0%  0.00%      -    ONLINE
+  gpt/usb1  1.84G    35K  1.75G        -         -     0%  0.00%      -    ONLINE
+  gpt/usb2  1.84G    25K  1.75G        -         -     0%  0.00%      -    ONLINE
+  gpt/usb3  1.84G    28K  1.75G        -         -     0%  0.00%      -    ONLINE
+#
+```
+
+
+
+```console
+# zpool create -O atime=off -O compression=lz4 -f upool disk/by-partlabel/usb0 disk/by-partlabel/usb1 disk/by-partlabel/usb2 disk/by-partlabel/usb3
+# zpool list -v upool
+NAME        SIZE  ALLOC   FREE  CKPOINT  EXPANDSZ   FRAG    CAP  DEDUP    HEALTH  ALTROOT
+upool         7G   122K  7.00G        -         -     0%     0%  1.00x    ONLINE  -
+  usb0     1.84G  44.5K  1.75G        -         -     0%  0.00%      -    ONLINE
+  usb1     1.84G  32.5K  1.75G        -         -     0%  0.00%      -    ONLINE
+  usb2     1.84G      0  1.75G        -         -     0%  0.00%      -    ONLINE
+  usb3     1.84G  44.5K  1.75G        -         -     0%  0.00%      -    ONLINE
+#
+```
+
+<!-- 
+# zpool list -v upool
+NAME        SIZE  ALLOC   FREE  CKPOINT  EXPANDSZ   FRAG    CAP  DEDUP    HEALTH  ALTROOT
+upool         7G   122K  7.00G        -         -     0%     0%  1.00x    ONLINE  -
+  sdb1     1.84G  44.5K  1.75G        -         -     0%  0.00%      -    ONLINE
+  sdc1     1.84G  32.5K  1.75G        -         -     0%  0.00%      -    ONLINE
+  sdd1     1.84G      0  1.75G        -         -     0%  0.00%      -    ONLINE
+  sde1     1.84G  44.5K  1.75G        -         -     0%  0.00%      -    ONLINE
+-->
 
 ![DSC07199.GIF](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/130638/20258830-ccf2-459c-8937-a41ac6ae0c9f.gif)
+
+
+```console
+# zpool create -O atime=off -O compression=lz4 -f upool da0p1 da1p1 da2p1 da3p1  # FreeBSDの場合
+
+# zpool create -O atime=off -O compression=lz4 -f upool sdb1 sdc1 sdd1 sde1      # Linuxの場合
+```
+
