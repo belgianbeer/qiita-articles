@@ -1,4 +1,4 @@
-# USBメモリで ZFS ！
+# USBメモリで ZFS！ ～いろんなZFSプールを構成してみる～
 
 ## ZFSのプール管理にはUSBメモリが最適
 
@@ -169,18 +169,7 @@ upool          7G   128K  7.00G        -         -     0%     0%  1.00x    ONLIN
 #
 ```
 
-### デバイス名を指定する場合の注意
-
-デバイス名としては/dev/gpt/usb0, /dev/gpt/usb1, /dev/gpt/usb2, /dev/gpt/usb3はそれぞれ/dev/da0p1, /dev/da1p1, /dev/da2p1, /dev/da3p1なので、次のように指定することもできます。
-
-```console
-# zpool create -O atime=off -O compression=lz4 -f upool da0p1 da1p1 da2p1 da3p1
-#
-```
-
-しかしこのように物理的なデバイス名を使用すると、どれかのデバイスが故障した場合に困ります。例えば/dev/da1が故障して認識できなくなったときに再起動すると、/dev/da2だったものが/dev/da1, /dev/da3だったものが/dev/da2と繰り上がるため、本当に故障したものがどれだかわからなくなります。ラベル名で管理していれば、無くなったラベル名からどのデバイスであったかが特定できます。
-
-## LinuxでRAID 0セットアップ
+### LinuxでRAID 0をセットアップ
 
 Linuxの場合はデバイス名の形式の違いを除けばFreeBSDと同様です。Linuxではラベル名が/dev/disk/by-partlabel/usb0等になるため、zpoolでは次のようにしていします。
 
@@ -196,15 +185,27 @@ upool         7G   122K  7.00G        -         -     0%     0%  1.00x    ONLINE
 #
 ```
 
-
-
-
 ![DSC07199.GIF](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/130638/20258830-ccf2-459c-8937-a41ac6ae0c9f.gif)
 
+
+### デバイス名を指定する場合の注意
+
+デバイス名としては/dev/gpt/usb0, /dev/gpt/usb1, /dev/gpt/usb2, /dev/gpt/usb3はそれぞれ/dev/da0p1, /dev/da1p1, /dev/da2p1, /dev/da3p1なので、次のように指定することもできます。
+
+```console
+# zpool create -O atime=off -O compression=lz4 -f upool da0p1 da1p1 da2p1 da3p1
+#
+```
+
+しかしこのように物理的なデバイス名を使用すると、どれかのデバイスが故障した場合に困ります。例えば/dev/da1が故障して認識できなくなったときに再起動すると、/dev/da2だったものが/dev/da1, /dev/da3だったものが/dev/da2と繰り上がるため、本当に故障したものがどれだかわからなくなります。ラベル名で管理していれば、無くなったラベル名からどのデバイスであったかが特定できます。
 
 ```console
 # zpool create -O atime=off -O compression=lz4 -f upool da0p1 da1p1 da2p1 da3p1  # FreeBSDの場合
 
 # zpool create -O atime=off -O compression=lz4 -f upool sdb1 sdc1 sdd1 sde1      # Linuxの場合
 ```
+
+## RAID 1 ミラー
+
+## RAID 5, 6
 
