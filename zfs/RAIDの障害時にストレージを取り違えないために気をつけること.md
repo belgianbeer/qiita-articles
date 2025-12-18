@@ -1,3 +1,4 @@
+<!-- https://qiita.com/belgianbeer/items/3b927310c206c3d9f78c -->
 # RAIDの障害時にストレージを取り違えないために気をつけること
 
 ## はじめに

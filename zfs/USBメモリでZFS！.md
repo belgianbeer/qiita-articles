@@ -1,3 +1,4 @@
+<!-- https://qiita.com/belgianbeer/items/156251d0675d456c2207 -->
 # USBメモリで ZFS！
 
 ## ZFSプールの実験にはUSBメモリが最適
