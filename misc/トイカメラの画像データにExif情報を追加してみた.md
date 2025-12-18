@@ -131,7 +131,7 @@ exiftool -quiet -preserve -overwrite_original \
 	ファイル名
 ```
 
-これを最初に例で使った PHO00313.JPG に対して実行した後、exiftoolで情報を表示すると次のようになります。
+これを最初に例で使った PHO00313.JPG に対して実行した後、exiftoolで情報を表示すると次のように、正しくExifの時刻情報等が追加されているのが確認できます。
 
 ```console
 $ exiftool PHO00313.JPG
