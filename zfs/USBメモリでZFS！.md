@@ -207,10 +207,10 @@ RAIDZではストレージ1台分がパリティとして利用されるため�
 
 ### LinuxでRAIDZをセットアップ
 
-Linuxの場合はデバイス名の形式の違いを除けばFreeBSDと同様です。Linuxではラベル名が/dev/disk/by-partlabel/usb0等になるため、zpoolでは次のように指定します。
+Linuxの場合はデバイス名の形式の違いを除けばFreeBSDと同様です。Linuxでラベル名を示すデバイスは`/dev/disk/by-partlabel/usb0`等になりますが、LinuxのZFSではラベル名だけでストレージを指定できます。
 
 ```console
-# zpool create -O atime=off -O compression=lz4 upool raidz disk/by-partlabel/usb0 disk/by-partlabel/usb1 disk/by-partlabel/usb2 disk/by-partlabel/usb3
+# zpool create -O atime=off -O compression=lz4 upool raidz usb0 usb1 usb2 usb3
 #
 ```
 
