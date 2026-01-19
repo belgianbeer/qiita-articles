@@ -121,7 +121,7 @@ errors: No known data errors
 #
 ```
 
-この通り、state:が`ONLINE`となり正常な状態に戻りました。
+この通り`state:`がONLINEとなり正常な状態に戻りました。
 
 scan:には`resilvered`というあまり見かけない表現が使われていますが、resilverは銀の装飾品等を磨く意味です。ZFSではRAIDの修復にこの表現を使っています。usb1を差し直し`zpool online`によってresilverに7秒かかったことがわかります。
 
@@ -174,7 +174,6 @@ errors: No known data errors
 ```
 
 もちろん新たに追加したusb4は新規のデバイスであるため、`zpool online`による復帰はできません。
-
 
 ```console
 # zpool online upool gpt/usb4
@@ -357,6 +356,14 @@ errors: No known data errors
 
 パターン3はトラブルとは関係なく、容量の大きなデバイスへの交換でも活用できます。
 
-## RAIDZ2 - さらなる冗長性の確保
+## RAIDZ2 - さらなる信頼性の確保
 
-実験は以上で、RAIDZの冗長性とZFSのプール操作についてある程度理解できたと思います。はじめに書いたようにRAIDZでは組み合わせているストレージの1台分を冗長性を確保し、1台の故障までは耐えらえるようにしています。しかし冗長性は1台分しか無いため、RAIDの修復(ZFSではresilver)中にさらに別のストレージにトラブルが発生するとファイルシステムが利用できなくなります。このような状況でも運用し続けられるようさらに1台分つまり合計2台分の冗長性を持たせるRAID構成がRAIDZ2(一般的なRAIDではRAID 6)です。RAIDZやRAIDZ2についての詳細は、[RAIDを導入する前に考えること](https://qiita.com/belgianbeer/items/42bd1dd5c35c96d808a8)の[RAIDZ](https://qiita.com/belgianbeer/items/42bd1dd5c35c96d808a8#raidz)の段落に説明してあります。
+今回の実験は以上で、RAIDZの信頼性とZFSのプール操作についてある程度理解できたと思います。はじめに書いたようにRAIDZでは組み合わせているストレージの1台分を冗長性を確保し、1台故障してもデータの継続性を得られるようにしています。しかし冗長性は1台分しか無いため、RAIDの修復(ZFSではresilver)中にさらに別のストレージにトラブルが発生するとファイルシステムは修復不能になります。
+さらに1台分つまり合計2台分の冗長性を持たせ修復中のデバイスの故障にも耐えられるようなRAID構成がRAIDZ2(一般的なRAIDではRAID 6)です。RAIDZ2については「[USBメモリでZFS！ その3 RAIDZ2を試してみる](https://qitta.com/belgianbeer/iterm/)」の記事をご覧ください。
+
+## シリーズ「USBメモリでZFS！」
+
+- [USBメモリでZFS！](https://qiita.com/belgianbeer/items/156251d0675d456c2207)
+- [USBメモリでZFS！ その2 RAIDZを壊して修復してみる](https://qiita.com/belgianbeer/items/9726a3e8be624c4cedf2)
+- [USBメモリでZFS！ その3 RAIDZ2を試してみる](https://qiita.com/belgianbeer/items/035227ac9cc3e59747da)
+- 続く
