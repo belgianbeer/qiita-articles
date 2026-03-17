@@ -1,120 +1,81 @@
-# はじめに
-MacユーザーであればTime Machineでのバックアップが必須であることは言うまでもない。FreeBSDをZFSでファイルサーバーにしている場合、Time Machineバックアップをファイル共有をこのサーバーで利用できれば余計なコスト避けることができる。しかし実際にこれらを実現するには、Sambaをどう設定すればよいのか。
+<!-- https://qiita.com/belgianbeer/items/cdab7919ec3555ffd339 -->
 
-ちなみにNetatalkを使ってAFPサーバーを構築してもTime Machieサーバーは実現できるし実際それでずっと利用してきている。ただSambaと両方動かすのも微妙な手間なので、シンプルにするためにどちらかをやめるとなると、NetatalkはSMBをサポートしないのでAFPをサポートしているSambaにまとめることになる。
+# SambaとZFSでMacのTime Machineバックアップを実現する
+
+## はじめに
+
+MacユーザーであればTime Machineでのバックアップが必須であることは言うまでもない。Time Machineのバックアップ先としてはUSB接続のストレージやNAS等もあるが、Sambaサーバーを運用しているのであればそれを使うのも一手である。特にFreeBSDとZFSでSambaサーバー運用しているのであればZFSの恩恵も受けられる。当記事は実際にこれを実現するためにSambaの設定を試して確認した結果である。
+
+> ご覧の通り当記事はFreeBSD Advent Calendar 2020に投稿したものであるが、2026年2月、FreeBSD 15の導入時にSambaを4.23にバージョンアップして改めて設定を見直した。さらにmacOS SeqauoiaとmacOS Tahoeとで動作確認を行い[^tahoe]、全面的に書き換えた。当初の記事には動かなかった設定例も記述してあったが、それらは削除した。
+
+[^tahoe]:2026年3月現在macOS TahoeのTime Machineにはバックアップファイル作成時にUnicodeのNFC/NFD問題があり、初期バックアップのみ拳固を英語にする等の回避策をとる必要がある。
 
 ここで目的とする設定は次の通りである。
 
 - Time Machineバックアップが正しく動作する
 - ファイル共有でMacのリソースフォークをZFSの拡張属性に保存する(“._*” が作成されない)
 
-実はSambaでのTime Machineサーバーは、以前から試行錯誤をしていてどうしてもうまくいってなかった。先日改めてテストしたところ無事動作を確認できたので、その設定を紹介する。
-# SambaでMacのファイル共有
-SambaではVFSモジュールの追加で特定のファイルシステムやプロトコルに対応できるようになっている。AFP用のサービスのモジュールは vfs_fruit で、Macとファイル共有を行うためにはこのモジュールの導入が必要となる。
+## SambaでMacのファイル共有とTime Machineの設定
 
-```
-	vfs objects = fruit
+SambaではVFSモジュールの追加で特定のファイルシステムやプロトコルに対応できるようになっている。AFP用のサービスのモジュールはvfs_fruitで、Macとファイル共有を行うためにはこのモジュールの導入が必要となる。またstreams_xattrは、streamの内容をファイルシステムのPOSIIX拡張属性に保存するモジュールである。
+
+動作した設定例は以下の通りで、Macには関係のない一般的な設定は省略してある。またこの設定はFreeBSD 15.0-RELEASEのSamba 4.23、macOS TahoeとSequoiaの組み合わせでの動作を確認している。
+
+### global セクション
+
+vfs_fruitを含め必要なモジュールとMacでのファイル共有に必要な設定を追加する。
+
+```ini
+[global]
+        vfs objects = catia fruit streams_xattr
+        fruit:resource = stream
+        fruit:metadata = stream
 ```
 
-# 動作した設定
-最初に動作した設定例を示す。なおMacには関係のない一般的な設定は省略してある。
-## global セクション
-Mac用の特別な設定は記載しない
-## 個別の共有フォルダ
-共有名を share とする例
+macOSではファイル名にWindowsで通常禁止されている文字(?, <, >, *, | など)を使用できてしまうので、トラブルを避けるためにファイル名を適切にマッピングしてくれるcatiaというVFSモジュールを追加してある。
 
-```
+### 個別の共有フォルダ
+
+特別な設定は行う必要は行わなくてもMacから問題無くファイルアクセスができる。
+
+```ini
 [share]
-	path = /data/share
-	vfs objects = fruit streams_xattr
-	fruit:resource = stream
-	fruit:metadata = stream
+        path = /data/share
+        # Mac用の特別な設定は追加する必要は無い
 ```
 
-## Time Machine用のバックアップフォルダ
-共有名を TimeMachine とする例
+### Time Machine用のバックアップフォルダ
 
-```
+Time Machine用の共有フォルダであることを設定するために`fruit:time machine = yes`を追加するだけでよい。
+
+```ini
 [TimeMachine]
-	path = /data/TimeMachine
-	vfs objects = fruit
-	fruit:resource = xattr
-	fruit:time machine = yes
+        path = /data/TimeMachine
+        fruit:time machine = yes
 ```
 
-この設定では、 /data/TimeMachine 内に Mac側がバックアップフォルダを作成する際、一緒に ._ で始まるファイルができてしまうが、Time Machine 専用フォルダでファイル共有には利用しないので許容する。
-## ZFSの構成
-上記の設定で、/data/share と /backup/TimeMachine は ZFSでは別々のファイルシステムとして設定している。つまり zfs list では次のように見える
+## Time Machineを使うためのZFSの構成
 
-```
+上記の設定で、/data/share と /backup/TimeMachine は ZFSでは別々のファイルシステムとして設定している。つまり`zfs list`では次のように見える
+
+```console
 $ zfs list -o name -r zroot/data
 NAME
 zroot/data
 zroot/data/share
 zroot/data/TimeMachine
+$
 ```
 
-このように独立したファイルシステムにすると、ZFSのプロパティでTimeMachineのディスク容量の制限が簡単にできる。もちろん制限はSamba側でも設定できるが、個人的にはZFSプロパティのほうが管理しやすい。
+このように独立したファイルシステムにしておけば、ZFSのプロパティを設定することでTimeMachine用ディスク容量の制限やその値の変更を簡単に行える。例えば1TBに制限するのであれば次のようにquotaを設定する。
 
-もし、/data/shre と /data/TimeMachine が ZFSとして同じファイルシステムでのディレクトリの場合は、本設定が動作するのかどうかについては確認していない。
-# 動作しなかった設定
-## ダメだった例1
-```
-[global]
-	vfs objects = fruit streams_xattr
-	fruit:resource = stream
-	fruit:metadata = stream
-
-[share]
-	path = /data/share
-	# Mac用の特別な設定は設定しない
-
-[TimeMachine]
-	path = /data/TimeMachine
-	fruit:time machine = yes
+```console
+$ zfs set quota=1T zroot/data/TimeMachine
+$
 ```
 
-共有は動作するが、TimeMachineのバックアップが動作しない
-## ダメだった例2
+もちろん容量制限はSamba側でも行えるが、ZFSプロパティであればSambaサーバーが設定の読み直す必要もなく即座に設定変更できる。
 
-```
-[global]
-	vfs objects = fruit 
-	fruit:resource = xattr
+## おわりに
 
-[share]
-	path = /data/share
-	# Mac用の特別な設定は設定しない
-
-[TimeMachine]
-	path = /data/TimeMachine
-	fruit:time machine = yes
-```
-
-TimeMacineバックアップは動作する。しかし共有フォルダをファインダーでアクセスすると挙動不審で、例えばjpegファイルをダブルクリックすると、ファインダーからはオブジェクトが消える。しかし実際にはファイルは残っている
-
-## ダメだった例3
-
-```
-[global]
-	vfs objects = fruit streams_xattr
-	fruit:resource = stream
-
-[share]
-	path = /data/share
-	# Mac用の特別な設定は設定しない
-
-[TimeMachine]
-	path = /data/TimeMachine
-	fruit:time machine = yes
-```
-
-共有は ._* ファイルができる。バックアップは動作しない。
-
-# まとめ
-
-テストした範囲では、このように共有設定とTime Machine用設定では vfs_fruit のオプションを変えないと動作しなかった。過去にいろいろ試したのは、globalセクションにvfs_fruitのオプションを設定して、Time Machine用のみに「fruit:time machine = yes」を追加したのがいけなかったようである。
-
-ここでの結論は、FreeBSDでZFSを使いSambaでMac用の設定を行う場合は、**Time Machine用と共有用では別々の設定を行う** 、ということになる。なおUSFやLinuxでのEXT4では試していない。
-
-動作する設定は見つけられたものの、どうもSambaのドキュメントの説明と噛み合わず自分的には少々気持ち悪い。もしZFSとSambaの組み合わせで、この設定で動いているぜというのがあれば、ぜひコメントして欲しい。
+実は今回記載した設定は、本記事を最初に投稿した時点では動作せず「ダメだった例」として記載していたものである。当時これで動作するはずなのに変だなぁと思いながらテストを繰り返した記憶がある。
