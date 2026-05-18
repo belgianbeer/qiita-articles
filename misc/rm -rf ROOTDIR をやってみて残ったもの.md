@@ -1,3 +1,5 @@
+<!-- https://qiita.com/belgianbeer/items/a3ecfe739fea84f4a3fc -->
+
 # rm -rf / をやってみて残ったもの
 
 ## はじめに
