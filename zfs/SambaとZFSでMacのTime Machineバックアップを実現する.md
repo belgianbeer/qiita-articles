@@ -8,7 +8,7 @@ MacユーザーであればTime Machineでのバックアップが必須であ�
 
 > ご覧の通り当記事はFreeBSD Advent Calendar 2020に投稿したものであるが、2026年2月、FreeBSD 15の導入時にSambaを4.23にバージョンアップして改めて設定を見直した。さらにmacOS SeqauoiaとmacOS Tahoeとで動作確認を行い[^tahoe]、全面的に書き換えた。当初の記事には動かなかった設定例も記述してあったが、それらは削除した。
 
-[^tahoe]:2026年3月現在macOS TahoeのTime Machineにはバックアップファイル作成時にUnicodeのNFC/NFD問題があり、初期バックアップのみ拳固を英語にする等の回避策をとる必要がある。
+[^tahoe]:2026年3月現在macOS TahoeのTime Machineにはバックアップファイル作成時にUnicodeのNFC/NFD問題があり、初期バックアップのみ言語を英語にする等の回避策をとる必要がある。
 
 ここで目的とする設定は次の通りである。
 
